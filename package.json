@@ -10,9 +10,16 @@
   "author": "",
   "license": "UNLICENSED",
   "dependencies": {
-    "express": "^4.16.3"
+    "@websanova/vue-auth": "^2.21.9-beta",
+    "axios": "^0.18.0",
+    "express": "^4.16.3",
+    "vue": "^2.5.16",
+    "vue-axios": "^2.1.1",
+    "vue-router": "^3.0.1"
   },
   "devDependencies": {
+    "vue-loader": "^15.0.7",
+    "vue-template-compiler": "^2.5.16",
     "webpack": "^4.6.0",
     "webpack-cli": "^2.1.2"
   }
