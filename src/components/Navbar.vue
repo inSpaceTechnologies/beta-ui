@@ -1,17 +1,20 @@
 <template>
-  <div>
-    <router-link :to="{name: 'home'}">Home</router-link>
-
-    <span v-show="!$auth.check()">
-      <router-link :to="{name: 'login'}">Log in</router-link>
-      <router-link :to="{name: 'signup'}">Sign up</router-link>
-    </span>
-
-    <span v-show="$auth.check()">
-      {{ $auth.user().email }}
-      <a v-on:click="logout()" href="javascript:void(0);">Logout</a>
-    </span>
-  </div>
+  <v-toolbar>
+    <v-btn active-class exact :to="{name: 'home'}" flat>
+      <v-toolbar-title>inSpace</v-toolbar-title>
+    </v-btn>
+    <v-spacer></v-spacer>
+    <v-toolbar-items>
+      <v-btn exact :to="{name: 'home'}" flat>Home</v-btn>
+    </v-toolbar-items>
+    <v-toolbar-items v-show="!$auth.check()">
+      <v-btn exact :to="{name: 'login'}" flat>Log in</v-btn>
+      <v-btn exact :to="{name: 'signup'}" flat>Sign up</v-btn>
+    </v-toolbar-items>
+    <v-toolbar-items v-show="$auth.check()">
+      <v-btn v-on:click="logout()" flat>Log out</v-btn>
+    </v-toolbar-items>
+  </v-toolbar>
 </template>
 
 <script>

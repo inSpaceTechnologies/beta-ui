@@ -1,13 +1,17 @@
 <template>
-  <div>
+  <v-app>
     <div v-if="$auth.ready()">
       <navbar></navbar>
-      <router-view></router-view>
+      <v-content>
+        <v-container>
+          <router-view></router-view>
+        </v-container>
+      </v-content>
     </div>
     <div v-if="!$auth.ready()">
       Loading ...
     </div>
-  </div>
+  </v-app>
 </template>
 <script>
 </script>
