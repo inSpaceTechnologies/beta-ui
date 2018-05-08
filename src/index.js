@@ -2,6 +2,10 @@ import Vue from 'vue'
 import VueRouter from 'vue-router'
 import axios from 'axios';
 import VueAxios from 'vue-axios';
+import Vuetify from 'vuetify';
+
+import 'vuetify/dist/vuetify.min.css' // Ensure you are using css-loader
+import 'material-design-icons-iconfont/dist/material-design-icons.css' // Ensure you are using css-loader
 
 import appComponent from './components/App.vue'
 import homeComponent from './components/Home.vue'
@@ -53,6 +57,7 @@ var router = new VueRouter({
 
 Vue.router = router;
 
+Vue.use(Vuetify);
 Vue.use(VueRouter);
 Vue.use(VueAxios, axios);
 // TODO: this should go in config
