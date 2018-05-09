@@ -1,6 +1,6 @@
 <template>
   <div>
-    <h1>Home</h1>
+    <scatter-setup></scatter-setup>
   </div>
 </template>
 <script>
