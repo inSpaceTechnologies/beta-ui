@@ -6,31 +6,31 @@ module.exports = {
   entry: './src/index.js',
   output: {
     filename: 'bundle.js',
-    path: path.resolve(__dirname, 'public')
+    path: path.resolve(__dirname, 'public'),
   },
   resolve: {
     alias: {
-      'vue$': 'vue/dist/vue.common.js'
-    }
+      vue$: 'vue/dist/vue.common.js',
+    },
   },
   module: {
     rules: [
       {
         test: /\.vue$/,
-        loader: 'vue-loader'
+        loader: 'vue-loader',
       },
       {
         test: /\.css$/,
-        loader: ['style-loader', 'css-loader']
+        loader: ['style-loader', 'css-loader'],
       },
       {
         test: /\.(ttf|woff|woff2|eot)$/,
-        loader: 'file-loader'
+        loader: 'file-loader',
       },
 
-    ]
+    ],
   },
   plugins: [
-   new VueLoaderPlugin()
- ]
+    new VueLoaderPlugin(),
+  ],
 };

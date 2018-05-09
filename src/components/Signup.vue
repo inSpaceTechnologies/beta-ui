@@ -2,9 +2,17 @@
   <div>
     <h1>Sign up</h1>
 
-    <v-form ref="form" v-model="valid" lazy-validation>
+    <v-form
+      ref="form"
+      v-model="valid"
+      lazy-validation
+    >
 
-      <v-alert v-show="error" :value="true" type="error">
+      <v-alert
+        v-show="error"
+        :value="true"
+        type="error"
+      >
         {{ error }}
       </v-alert>
 
@@ -13,7 +21,7 @@
         :rules="emailRules"
         label="Email address"
         required
-      ></v-text-field>
+      />
 
       <v-text-field
         v-model="data.body.password"
@@ -21,17 +29,17 @@
         :append-icon-cb="() => (passwordVisible = !passwordVisible)"
         :type="passwordVisible ? 'password' : 'text'"
         label="Password"
-      ></v-text-field>
+      />
 
       <v-checkbox
         v-model="data.autoLogin"
         label="Auto Login"
-      ></v-checkbox>
+      />
 
       <v-checkbox
         v-model="data.rememberMe"
         label="Remember Me"
-      ></v-checkbox>
+      />
 
       <v-btn
         :disabled="!valid"
@@ -43,50 +51,47 @@
   </div>
 </template>
 <script>
-  export default {
-    data() {
-      return {
-        valid: true,
-        passwordVisible: true,
-        emailRules: [
-         v => !!v || 'Email is required',
-         v => /^\w+([.-]?\w+)*@\w+([.-]?\w+)*(\.\w{2,3})+$/.test(v) || 'Email must be valid'
-        ],
-        data: {
-          body: {
-              email: '',
-              password: ''
-          },
-          autoLogin: false,
-          rememberMe: false
+export default {
+  data() {
+    return {
+      valid: true,
+      passwordVisible: true,
+      emailRules: [
+        v => !!v || 'Email is required',
+        v => /^\w+([.-]?\w+)*@\w+([.-]?\w+)*(\.\w{2,3})+$/.test(v) || 'Email must be valid',
+      ],
+      data: {
+        body: {
+          email: '',
+          password: '',
         },
-        error: null
-      };
-    },
-    mounted() {
-    },
-    methods: {
-      signup: function () {
-
-        if (this.$refs.form.validate()) {
-          var redirect = 'login';
-          if (this.data.autoLogin) {
-            redirect = 'home';
-          }
-          this.$auth.register({
-            //url: '/signup',
-            data: this.data.body,
-            autoLogin: this.data.autoLogin,
-            rememberMe: this.data.rememberMe,
-            redirect: { name: redirect },
-            success: function () {
-            },
-            error: function (res) {
-              this.error = res.response.data;
-            }
-          });
+        autoLogin: false,
+        rememberMe: false,
+      },
+      error: null,
+    };
+  },
+  methods: {
+    signup() {
+      if (this.$refs.form.validate()) {
+        let redirect = 'login';
+        if (this.data.autoLogin) {
+          redirect = 'home';
         }
+        this.$auth.register({
+          // url: '/signup',
+          data: this.data.body,
+          autoLogin: this.data.autoLogin,
+          rememberMe: this.data.rememberMe,
+          redirect: { name: redirect },
+          success() {
+          },
+          error(res) {
+            this.error = res.response.data;
+          },
+        });
       }
-    }
-  }
+    },
+  },
+};
 </script>

@@ -1,67 +1,72 @@
-import Vue from 'vue'
-import Vuex from 'vuex'
-import VueRouter from 'vue-router'
+import Vue from 'vue';
+import Vuex from 'vuex';
+import VueRouter from 'vue-router';
 import axios from 'axios';
 import VueAxios from 'vue-axios';
 import Vuetify from 'vuetify';
 
+import VueAuth from '@websanova/vue-auth';
+import VueAuthBearer from '@websanova/vue-auth/drivers/auth/bearer';
+import VueAuthAxios from '@websanova/vue-auth/drivers/http/axios.1.x';
+import VueAuthRouter from '@websanova/vue-auth/drivers/router/vue-router.2.x';
+
 import * as Eos from 'eosjs';
 
-import 'vuetify/dist/vuetify.min.css' // Ensure you are using css-loader
-import 'material-design-icons-iconfont/dist/material-design-icons.css' // Ensure you are using css-loader
+import 'vuetify/dist/vuetify.min.css';
+import 'material-design-icons-iconfont/dist/material-design-icons.css';
 
 // pages
-import appComponent from './components/App.vue'
-import homeComponent from './components/Home.vue'
-import loginComponent from './components/Login.vue'
-import signupComponent from './components/Signup.vue'
-import notFoundComponent from './components/404.vue'
+import appComponent from './components/App.vue';
+import homeComponent from './components/Home.vue';
+import loginComponent from './components/Login.vue';
+import signupComponent from './components/Signup.vue';
+import notFoundComponent from './components/404.vue';
 
-import navbarComponent from './components/Navbar.vue'
-import scatterSetupComponent from './components/ScatterSetup.vue'
+import navbarComponent from './components/Navbar.vue';
+import scatterSetupComponent from './components/ScatterSetup.vue';
 
 Vue.component('navbar', navbarComponent);
 Vue.component('scatter-setup', scatterSetupComponent);
 
 // vue-router
 
-var router = new VueRouter({
+const router = new VueRouter({
   mode: 'history',
   routes: [
     {
       path: '/',
       name: 'home',
-      component: homeComponent
+      component: homeComponent,
     },
     // dummy page that requires auth, for testing
     {
-        path: '/secure',
-        name: 'secure',
-        component: { template: '<div>secure</div>'},
-        meta: {auth: true}
+      path: '/secure',
+      name: 'secure',
+      component: { template: '<div>secure</div>' },
+      meta: { auth: true },
     },
     {
-        path: '/login',
-        name: 'login',
-        component: loginComponent,
-        meta: {auth: false}
+      path: '/login',
+      name: 'login',
+      component: loginComponent,
+      meta: { auth: false },
     },
     {
-        path: '/signup',
-        name: 'signup',
-        component: signupComponent,
-        meta: {auth: false}
+      path: '/signup',
+      name: 'signup',
+      component: signupComponent,
+      meta: { auth: false },
     },
     {
-       path: '/404',
-       name: '404',
-       component: notFoundComponent
+      path: '/404',
+      name: '404',
+      component: notFoundComponent,
     },
     {
-       path: '*',
-       redirect: { name: '404'}
+      path: '*',
+      redirect: { name: '404' },
     },
-  ]
+  ],
 });
 
 Vue.use(VueRouter);
@@ -69,10 +74,10 @@ Vue.router = router;
 
 // vuex
 
-Vue.use(Vuex)
+Vue.use(Vuex);
 
 // TODO: this should go in config
-const network = { blockchain: 'eos', host:"ec2-52-17-24-199.eu-west-1.compute.amazonaws.com", port:8888 };
+const network = { blockchain: 'eos', host: 'ec2-52-17-24-199.eu-west-1.compute.amazonaws.com', port: 8888 };
 
 const store = new Vuex.Store({
   state: {
@@ -83,7 +88,6 @@ const store = new Vuex.Store({
   },
   mutations: {
     setScatter(state, scatter) {
-
       state.scatter = scatter;
 
       const eosOptions = {};
@@ -97,15 +101,13 @@ const store = new Vuex.Store({
     },
     setIdentityConfirmed(state, identityConfirmed) {
       state.identityConfirmed = identityConfirmed;
-    }
+    },
   },
   actions: {
     requestIdentity({ commit, state }) {
-
       return new Promise((resolve, reject) => {
         // You can require certain fields
-        state.scatter.getIdentity({accounts: [network]}).then(identity => {
-
+        state.scatter.getIdentity({ accounts: [network] }).then((identity) => {
           // Identities must be bound to scatter to be
           // able to request transaction signatures
           state.scatter.useIdentity(identity);
@@ -113,42 +115,40 @@ const store = new Vuex.Store({
           commit('setIdentity', identity);
 
           resolve(identity);
-
-        }, err => {
+        }, (err) => {
           reject(err);
         });
       });
     },
-    suggestNetwork({ commit, state }) {
+    suggestNetwork({ state }) {
       return state.scatter.suggestNetwork(network);
     },
     forgetIdentity({ commit, state }) {
       return new Promise((resolve, reject) => {
-
         state.scatter.forgetIdentity().then(() => {
           commit('setIdentity', null);
           resolve();
-        }, err => {
+        }, (err) => {
           reject(err);
         });
       });
-    }
-  }
+    },
+  },
 });
 
 
-document.addEventListener('scatterLoaded', scatterExtension => {
+document.addEventListener('scatterLoaded', () => {
+  // Scatter will now be available from the window scope.
+  // At this stage the connection to Scatter from the application is
+  // already encrypted.
+  // const scatter = window.scatter;
+  const { scatter } = window;
 
-    // Scatter will now be available from the window scope.
-    // At this stage the connection to Scatter from the application is
-    // already encrypted.
-    const scatter = window.scatter;
+  store.commit('setScatter', scatter);
 
-    store.commit('setScatter', scatter);
-
-    // It is good practice to take this off the window once you have
-    // a reference to it.
-    window.scatter = null;
+  // It is good practice to take this off the window once you have
+  // a reference to it.
+  window.scatter = null;
 });
 
 // vuetify
@@ -163,17 +163,18 @@ Vue.axios.defaults.baseURL = 'http://localhost:3000';
 
 // vue-auth
 
-Vue.use(require('@websanova/vue-auth'), {
-  auth: require('@websanova/vue-auth/drivers/auth/bearer.js'),
-  http: require('@websanova/vue-auth/drivers/http/axios.1.x.js'),
-  router: require('@websanova/vue-auth/drivers/router/vue-router.2.x.js')
-})
+Vue.use(VueAuth, {
+  auth: VueAuthBearer,
+  http: VueAuthAxios,
+  router: VueAuthRouter,
+});
 
 // Vue app
 
-const app = new Vue({
+// eslint-disable-next-line no-new
+new Vue({
   el: '#app',
-  store: store,
+  store,
   router: Vue.router,
-  render: h => h(appComponent)
-})
+  render: h => h(appComponent),
+});
