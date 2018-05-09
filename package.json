@@ -4,7 +4,8 @@
   "description": "",
   "main": "app.js",
   "scripts": {
-    "dev": "webpack --devtool source-map --mode development",
+    "lint": "eslint . --ignore-path .gitignore --ext .js,.vue;",
+    "dev": "npm run lint; webpack --devtool source-map --mode development",
     "build": "webpack --mode production"
   },
   "author": "",
@@ -23,6 +24,10 @@
   },
   "devDependencies": {
     "css-loader": "^0.28.11",
+    "eslint": "^4.19.1",
+    "eslint-config-airbnb-base": "^12.1.0",
+    "eslint-plugin-import": "^2.11.0",
+    "eslint-plugin-vue": "^4.5.0",
     "file-loader": "^1.1.11",
     "style-loader": "^0.21.0",
     "vue-loader": "^15.0.7",
