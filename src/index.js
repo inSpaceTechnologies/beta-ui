@@ -1,5 +1,4 @@
 import Vue from 'vue';
-import Vuex from 'vuex';
 import VueRouter from 'vue-router';
 import axios from 'axios';
 import VueAxios from 'vue-axios';
@@ -10,12 +9,9 @@ import VueAuthBearer from '@websanova/vue-auth/drivers/auth/bearer';
 import VueAuthAxios from '@websanova/vue-auth/drivers/http/axios.1.x';
 import VueAuthRouter from '@websanova/vue-auth/drivers/router/vue-router.2.x';
 
-import * as Eos from 'eosjs';
-
 import 'vuetify/dist/vuetify.min.css';
 import 'material-design-icons-iconfont/dist/material-design-icons.css';
 
-// pages
 import appComponent from './components/App.vue';
 import homeComponent from './components/Home.vue';
 import loginComponent from './components/Login.vue';
@@ -25,8 +21,16 @@ import notFoundComponent from './components/404.vue';
 import navbarComponent from './components/Navbar.vue';
 import scatterSetupComponent from './components/ScatterSetup.vue';
 
+import filespaceItemComponent from './components/FilespaceItem.vue';
+
+import store from './store';
+
+// components
+
 Vue.component('navbar', navbarComponent);
 Vue.component('scatter-setup', scatterSetupComponent);
+Vue.component('filespace-item', filespaceItemComponent);
+
 
 // vue-router
 
@@ -72,70 +76,11 @@ const router = new VueRouter({
 Vue.use(VueRouter);
 Vue.router = router;
 
-// vuex
-
-Vue.use(Vuex);
+// Scatter
 
 // TODO: this should go in config
-const network = { blockchain: 'eos', host: 'ec2-52-17-24-199.eu-west-1.compute.amazonaws.com', port: 8888 };
-
-const store = new Vuex.Store({
-  state: {
-    scatter: null,
-    eos: null,
-    identity: null,
-    identityConfirmed: false,
-  },
-  mutations: {
-    setScatter(state, scatter) {
-      state.scatter = scatter;
-
-      const eosOptions = {};
-
-      const eos = scatter.eos(network, Eos.Localnet, eosOptions);
-
-      state.eos = eos;
-    },
-    setIdentity(state, identity) {
-      state.identity = identity;
-    },
-    setIdentityConfirmed(state, identityConfirmed) {
-      state.identityConfirmed = identityConfirmed;
-    },
-  },
-  actions: {
-    requestIdentity({ commit, state }) {
-      return new Promise((resolve, reject) => {
-        // You can require certain fields
-        state.scatter.getIdentity({ accounts: [network] }).then((identity) => {
-          // Identities must be bound to scatter to be
-          // able to request transaction signatures
-          state.scatter.useIdentity(identity);
-
-          commit('setIdentity', identity);
-
-          resolve(identity);
-        }, (err) => {
-          reject(err);
-        });
-      });
-    },
-    suggestNetwork({ state }) {
-      return state.scatter.suggestNetwork(network);
-    },
-    forgetIdentity({ commit, state }) {
-      return new Promise((resolve, reject) => {
-        state.scatter.forgetIdentity().then(() => {
-          commit('setIdentity', null);
-          resolve();
-        }, (err) => {
-          reject(err);
-        });
-      });
-    },
-  },
-});
-
+const network = { blockchain: 'eos', host: '0.0.0.0', port: 8888 };
+// const network = { blockchain: 'eos', host: 'ec2-52-17-24-199.eu-west-1.compute.amazonaws.com', port: 8888 };
 
 document.addEventListener('scatterLoaded', () => {
   // Scatter will now be available from the window scope.
@@ -144,11 +89,14 @@ document.addEventListener('scatterLoaded', () => {
   // const scatter = window.scatter;
   const { scatter } = window;
 
-  store.commit('setScatter', scatter);
+  store.commit('setScatter', { network, scatter });
 
   // It is good practice to take this off the window once you have
   // a reference to it.
   window.scatter = null;
+
+  // it's possible that we already have an identity
+  store.dispatch('confirmIdentity');
 });
 
 // vuetify

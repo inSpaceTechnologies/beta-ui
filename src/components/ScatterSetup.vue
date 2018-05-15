@@ -1,5 +1,5 @@
 <template>
-  <v-card v-if="!$store.state.identityConfirmed">
+  <v-card v-if="!$store.state.scatter.identity">
 
     <v-card-title primary-title>
       <h2>Scatter setup</h2>
@@ -66,7 +66,7 @@
         </v-stepper-content>
 
         <v-stepper-content step="3">
-          <v-card>
+          <v-card v-if="val === 3">
             <v-alert
               v-if="forgetIdentityError"
               :value="true"
@@ -74,8 +74,8 @@
             >
               {{ forgetIdentityError }}
             </v-alert>
-            <p><strong>Identity name:</strong> {{ $store.state.identity ? $store.state.identity.name : "" }}</p>
-            <p><strong>EOS account name:</strong> {{ $store.state.identity && $store.state.identity.accounts ? $store.state.identity.accounts[0].name : "" }}</p>
+            <p><strong>Identity name:</strong> {{ $store.state.scatter.scatter.identity.name }}</p>
+            <p><strong>EOS account name:</strong> {{ $store.state.scatter.scatter.identity.accounts[0].name }}</p>
             <p>If these details are correct, click 'Ok'. Otherwise, click 'Go back' to set a different identity.</p>
             <v-card-actions>
               <v-btn
@@ -108,9 +108,9 @@ export default {
   },
   computed: {
     val() {
-      if (this.$store.state.scatter == null) {
+      if (this.$store.state.scatter.scatter == null) {
         return 1;
-      } else if (this.$store.state.identity == null) {
+      } else if (this.$store.state.scatter.scatter.identity == null) {
         return 2;
       }
       return 3;
@@ -135,7 +135,7 @@ export default {
       });
     },
     confirmIdentity() {
-      this.$store.commit('setIdentityConfirmed', true);
+      this.$store.dispatch('confirmIdentity');
     },
   },
 };
