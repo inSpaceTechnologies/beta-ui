@@ -1,9 +1,13 @@
 /* eslint no-console: 0 */ // --> OFF
 
-// TODO: get this from env
-const debug = true;
+const debug = (process.env.NODE_ENV !== 'production');
 
 export default {
+  log: (message) => {
+    if (debug) {
+      console.log(message);
+    }
+  },
   error: (message) => {
     if (debug) {
       console.error(message);
