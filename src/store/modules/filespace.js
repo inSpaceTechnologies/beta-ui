@@ -79,11 +79,7 @@ const storeActions = {
         }
 
         // no root, so add one
-
-        // TODO: should be in config
-        const rootFolderName = 'My Filespace';
-
-        const root = { name: rootFolderName, files: [], folders: [] };
+        const root = { name: process.env.FILESPACE_ROOT_NAME, files: [], folders: [] };
         dispatch('addFolder', { index: rootIndex, content: root }).then(() => {
           resolve();
         }, (err) => {

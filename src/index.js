@@ -78,9 +78,7 @@ Vue.router = router;
 
 // Scatter
 
-// TODO: this should go in config
-const network = { blockchain: 'eos', host: '0.0.0.0', port: 8888 };
-// const network = { blockchain: 'eos', host: 'ec2-52-17-24-199.eu-west-1.compute.amazonaws.com', port: 8888 };
+const network = { blockchain: 'eos', host: process.env.EOS_HOST, port: process.env.EOS_PORT };
 
 document.addEventListener('scatterLoaded', () => {
   // Scatter will now be available from the window scope.
@@ -106,8 +104,7 @@ Vue.use(Vuetify);
 // vue-axios
 
 Vue.use(VueAxios, axios);
-// TODO: this should go in config
-Vue.axios.defaults.baseURL = 'http://localhost:3000';
+Vue.axios.defaults.baseURL = process.env.API_SERVER_HOST;
 
 // vue-auth
 
