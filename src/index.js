@@ -20,8 +20,8 @@ import notFoundComponent from './components/404.vue';
 
 import navbarComponent from './components/Navbar.vue';
 import scatterSetupComponent from './components/ScatterSetup.vue';
-
 import filespaceItemComponent from './components/FilespaceItem.vue';
+import stringPromptComponent from './components/StringPrompt.vue';
 
 import store from './store';
 
@@ -30,7 +30,7 @@ import store from './store';
 Vue.component('navbar', navbarComponent);
 Vue.component('scatter-setup', scatterSetupComponent);
 Vue.component('filespace-item', filespaceItemComponent);
-
+Vue.component('string-prompt', stringPromptComponent);
 
 // vue-router
 

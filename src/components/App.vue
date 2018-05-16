@@ -11,6 +11,7 @@
     <div v-if="!$auth.ready()">
       Loading ...
     </div>
+    <string-prompt/>
   </v-app>
 </template>
 <script>

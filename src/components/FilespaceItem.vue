@@ -64,13 +64,17 @@ export default {
       }
     },
     addChild() {
-      const name = prompt('Enter folder name');
-      if (name) {
-        this.$store.dispatch('addChildFolder', { parentIndex: this.id, index: Date.now(), content: { name, files: [], folders: [] } }).then(() => {
-        }, (err) => {
-          logger.error(err);
-        });
-      }
+      this.$store.dispatch('openStringPrompt', {
+        text: 'Enter folder name',
+        value: '',
+      }).then((value) => {
+        if (value) {
+          this.$store.dispatch('addChildFolder', { parentIndex: this.id, index: Date.now(), content: { name: value, files: [], folders: [] } }).then(() => {
+          }, (err) => {
+            logger.error(err);
+          });
+        }
+      });
     },
   },
 };

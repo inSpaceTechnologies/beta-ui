@@ -2,6 +2,7 @@ import Vue from 'vue';
 import Vuex from 'vuex';
 import scatter from './modules/scatter';
 import filespace from './modules/filespace';
+import stringPrompt from './modules/string-prompt';
 
 import logger from '../logger';
 
@@ -11,6 +12,7 @@ const store = new Vuex.Store({
   modules: {
     scatter,
     filespace,
+    stringPrompt,
   },
 });
 
