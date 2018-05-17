@@ -9,8 +9,8 @@ import VueAuthBearer from '@websanova/vue-auth/drivers/auth/bearer';
 import VueAuthAxios from '@websanova/vue-auth/drivers/http/axios.1.x';
 import VueAuthRouter from '@websanova/vue-auth/drivers/router/vue-router.2.x';
 
-import 'vuetify/dist/vuetify.min.css';
 import 'material-design-icons-iconfont/dist/material-design-icons.css';
+import 'vuetify/dist/vuetify.min.css';
 
 import appComponent from './components/App.vue';
 import homeComponent from './components/Home.vue';

@@ -2,10 +2,16 @@
   <li class="filespace-item">
     <div
       :class="{ folder: isFolder }"
-      @click="toggle"
     >
       {{ this.$store.state.filespace.filespace[id].name }}
-      <span v-if="isFolder">[{{ open ? '-' : '+' }}]</span>
+      <span
+        v-if="isFolder"
+        :style="{ color: this.$vuetify.theme.primary }"
+        class="filespace-button"
+        @click="toggle"
+      >
+        [{{ open ? '-' : '+' }}]
+      </span>
     </div>
     <ul
       v-show="open"
@@ -17,24 +23,48 @@
         :id="id"
       />
       <li
-        class="add"
-        @click="addChild"
+        v-for="file in this.$store.state.filespace.filespace[id].files"
+        :key="file.hash"
       >
-        +
+        {{ file.name }}
+      </li>
+      <li>
+        <span
+          :style="{ color: this.$vuetify.theme.primary }"
+          class="filespace-button"
+          @click="addChild"
+        >
+          [New folder]
+        </span>
+      </li>
+      <li>
+        <span
+          :style="{ color: this.$vuetify.theme.primary }"
+          class="filespace-button"
+          @click="startUpload"
+        >
+          [Upload file]
+        </span>
+        <input
+          ref="fileInput"
+          hidden="true"
+          type="file"
+          @change="completeUpload"
+        >
       </li>
     </ul>
   </li>
 </template>
-<style>
-.filespace-item {
-  cursor: pointer;
-}
+<style scoped>
 .filespace-item ul {
   padding-left: 1em;
 }
 .filespace-item .folder {
   font-weight:bold;
   list-style-type: disc;
+}
+.filespace-button {
+  cursor: pointer;
 }
 </style>
 <script>
@@ -74,6 +104,39 @@ export default {
             logger.error(err);
           });
         }
+      });
+    },
+    startUpload() {
+      const fileInputElement = this.$refs.fileInput;
+      fileInputElement.click();
+    },
+    completeUpload(event) {
+      const file = event.srcElement.files[0];
+
+      const formData = new FormData();
+      // This should automatically set the file name and type.
+      formData.append('file', file);
+
+      const config = {
+        headers: {
+          'content-type': 'multipart/form-data',
+          Accept: 'application/json',
+        },
+      };
+
+      this.axios.post('/ipfs/upload', formData, config).then((response) => {
+        const newContent = JSON.parse(JSON.stringify(this.$store.state.filespace.filespace[this.id])); // need to clone it
+        newContent.files.push({
+          name: file.name,
+          hash: response.data.hash,
+        });
+
+        this.$store.dispatch('addFolder', { index: this.id, content: newContent }).then(() => {
+        }, (err) => {
+          logger.error(err);
+        });
+      }).catch((error) => {
+        logger.log(error);
       });
     },
   },
