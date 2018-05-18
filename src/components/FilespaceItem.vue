@@ -27,6 +27,14 @@
         :key="file.hash"
       >
         {{ file.name }}
+        <a
+          :href="ipfsGateway + '/ipfs/' + file.hash"
+          :download="file.name"
+          target="_blank"
+          class="no-underline"
+        >
+          [Download]
+        </a>
       </li>
       <li>
         <span
@@ -56,15 +64,21 @@
   </li>
 </template>
 <style scoped>
-.filespace-item ul {
+ul {
   padding-left: 1em;
 }
-.filespace-item .folder {
+.folder {
   font-weight:bold;
   list-style-type: disc;
 }
 .filespace-button {
   cursor: pointer;
+}
+.filespace-button {
+  cursor: pointer;
+}
+.no-underline {
+  text-decoration: none;
 }
 </style>
 <script>
@@ -80,6 +94,7 @@ export default {
   data() {
     return {
       open: false,
+      ipfsGateway: process.env.IPFS_GATEWAY,
     };
   },
   computed: {

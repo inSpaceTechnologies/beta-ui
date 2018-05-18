@@ -75,7 +75,7 @@
               {{ forgetIdentityError }}
             </v-alert>
             <p><strong>Identity name:</strong> {{ $store.state.scatter.scatter.identity.name }}</p>
-            <p><strong>EOS account name:</strong> {{ $store.state.scatter.scatter.identity.accounts[0].name }}</p>
+            <p><strong>EOS account name:</strong> {{ $store.state.scatter.scatter.identity.accounts.find(acc => acc.blockchain === 'eos').name }}</p>
             <p>If these details are correct, click 'Ok'. Otherwise, click 'Go back' to set a different identity.</p>
             <v-card-actions>
               <v-btn

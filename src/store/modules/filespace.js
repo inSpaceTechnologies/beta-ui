@@ -25,9 +25,7 @@ const storeActions = {
   addFolder({ commit, rootState }, { index, content }) {
     return new Promise((resolve, reject) => {
       rootState.scatter.eos.contract('filespace').then((filespace) => {
-        // const account = this.scatter.identity.accounts.find(account => account.blockchain === 'eos');
-
-        const accountName = rootState.scatter.identity.accounts[0].name;
+        const accountName = rootState.scatter.identity.accounts.find(acc => acc.blockchain === 'eos').name;
         filespace.insert(accountName, index, JSON.stringify(content), { authorization: accountName }).then(() => {
           commit('setFolder', { index, content });
           resolve();
@@ -56,10 +54,11 @@ const storeActions = {
     commit, rootState, dispatch,
   }) {
     return new Promise((resolve, reject) => {
+      const accountName = rootState.scatter.identity.accounts.find(acc => acc.blockchain === 'eos').name;
       // get filespace
       rootState.scatter.eos.getTableRows({
         json: true,
-        scope: rootState.scatter.identity.accounts[0].name,
+        scope: accountName,
         code: 'filespace',
         table: 'folders',
         limit: 500,
