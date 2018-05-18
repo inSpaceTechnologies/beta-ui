@@ -1,5 +1,19 @@
 <template>
   <li class="filespace-item">
+    <v-snackbar
+      v-model="errorSnackbar"
+      :timeout="6000"
+      :top="true"
+      color="error"
+    >
+      {{ errorMessage }}
+      <v-btn
+        flat
+        @click="errorSnackbar = false"
+      >
+        Close
+      </v-btn>
+    </v-snackbar>
     <div
       :class="{ folder: isFolder }"
     >
@@ -95,6 +109,8 @@ export default {
     return {
       open: false,
       ipfsGateway: process.env.IPFS_GATEWAY,
+      errorSnackbar: false,
+      errorMessage: '',
     };
   },
   computed: {
@@ -122,6 +138,11 @@ export default {
       });
     },
     startUpload() {
+      if (!this.$auth.check()) {
+        this.errorMessage = 'Please log in to upload files to inSpace storage.';
+        this.errorSnackbar = true;
+        return;
+      }
       const fileInputElement = this.$refs.fileInput;
       fileInputElement.click();
     },
@@ -150,8 +171,8 @@ export default {
         }, (err) => {
           logger.error(err);
         });
-      }).catch((error) => {
-        logger.log(error);
+      }, (err) => {
+        logger.error(err);
       });
     },
   },
