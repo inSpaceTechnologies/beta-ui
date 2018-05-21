@@ -9,7 +9,7 @@
     "build": "webpack --mode production --config webpack.prod.js"
   },
   "author": "",
-  "license": "UNLICENSED",
+  "license": "MPL-2.0",
   "dependencies": {
     "@websanova/vue-auth": "^2.21.9-beta",
     "axios": "^0.18.0",
