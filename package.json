@@ -6,7 +6,8 @@
   "scripts": {
     "lint": "eslint . --ignore-path .gitignore --ext .js,.vue;",
     "dev": "npm run lint; webpack --devtool source-map --mode development --config webpack.dev.js",
-    "build": "webpack --mode production --config webpack.prod.js"
+    "build": "webpack --mode production --config webpack.prod.js",
+    "license": "license-check-and-add"
   },
   "author": "",
   "license": "MPL-2.0",
@@ -30,11 +31,43 @@
     "eslint-plugin-import": "^2.11.0",
     "eslint-plugin-vue": "^4.5.0",
     "file-loader": "^1.1.11",
+    "license-check-and-add": "^2.3.4",
     "style-loader": "^0.21.0",
     "vue-loader": "^15.0.7",
     "vue-template-compiler": "^2.5.16",
     "webpack": "^4.6.0",
     "webpack-cli": "^2.1.2",
     "webpack-merge": "^4.1.2"
+  },
+  "license-check-and-add-config": {
+    "folder": ".",
+    "license": "header.txt",
+    "exact_paths_method": "INCLUDE",
+    "exact_paths": [
+      "src"
+    ],
+    "file_type_method": "INCLUDE",
+    "file_types": [
+      ".js",
+      ".vue"
+    ],
+    "license_formats": {
+      "js|ts|css|scss|less|php|as|c|java|cpp|go|cto|acl": {
+        "prepend": "/*",
+        "append": "*/"
+      },
+      "html|xml|vue": {
+        "prepend": "<!--",
+        "append": "-->"
+      },
+      "gitignore|npmignore|eslintignore|dockerignore|sh|py": {
+        "eachLine": {
+          "prepend": "# "
+        }
+      },
+      "txt": {}
+    },
+    "insert_license": true,
+    "clear_license": false
   }
 }
