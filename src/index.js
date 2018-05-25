@@ -19,10 +19,11 @@ import 'material-design-icons-iconfont/dist/material-design-icons.css';
 import 'vuetify/dist/vuetify.min.css';
 
 import appComponent from './components/App.vue';
-import homeComponent from './components/Home.vue';
-import loginComponent from './components/Login.vue';
-import signupComponent from './components/Signup.vue';
-import notFoundComponent from './components/404.vue';
+
+import homeComponent from './components/pages/Home.vue';
+import loginComponent from './components/pages/Login.vue';
+import signupComponent from './components/pages/Signup.vue';
+import notFoundComponent from './components/pages/404.vue';
 
 import navbarComponent from './components/Navbar.vue';
 import scatterSetupComponent from './components/ScatterSetup.vue';
