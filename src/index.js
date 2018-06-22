@@ -24,6 +24,7 @@ import homeComponent from './components/pages/Home.vue';
 import loginComponent from './components/pages/Login.vue';
 import signupComponent from './components/pages/Signup.vue';
 import notFoundComponent from './components/pages/404.vue';
+import adminComponent from './components/pages/Admin.vue';
 
 import navbarComponent from './components/Navbar.vue';
 import scatterSetupComponent from './components/ScatterSetup.vue';
@@ -48,6 +49,15 @@ const router = new VueRouter({
       path: '/',
       name: 'home',
       component: homeComponent,
+    },
+    {
+      path: '/admin',
+      meta: {
+        auth: {
+          roles: 'admin',
+        },
+      },
+      component: adminComponent,
     },
     // dummy page that requires auth, for testing
     {
