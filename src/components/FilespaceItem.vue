@@ -23,7 +23,7 @@ file, You can obtain one at https://mozilla.org/MPL/2.0/.
     <div
       :class="{ folder: isFolder }"
     >
-      {{ this.$store.state.filespace.filespace[id].name }}
+      {{ object.name }}
       <span
         v-if="isFolder"
         :style="{ color: this.$vuetify.theme.primary }"
@@ -32,40 +32,42 @@ file, You can obtain one at https://mozilla.org/MPL/2.0/.
       >
         [{{ open ? '-' : '+' }}]
       </span>
+      <a
+        v-if="!isFolder && object.currentVersion"
+        :href="ipfsGateway + '/ipfs/' + object.currentVersion.ipfsHash"
+        :download="object.name"
+        target="_blank"
+        class="no-underline"
+      >
+        [Download]
+      </a>
     </div>
     <ul
       v-show="open"
       v-if="isFolder"
     >
       <filespace-item
-        v-for="(id, index) in this.$store.state.filespace.filespace[id].folders"
+        v-for="(folder, index) in object.childFolders"
         :key="index"
-        :id="id"
+        :object="folder"
+        :is-folder="true"
       />
-      <li
-        v-for="file in this.$store.state.filespace.filespace[id].files"
-        :key="file.hash"
-      >
-        {{ file.name }}
-        <a
-          :href="ipfsGateway + '/ipfs/' + file.hash"
-          :download="file.name"
-          target="_blank"
-          class="no-underline"
-        >
-          [Download]
-        </a>
-      </li>
-      <li>
+      <filespace-item
+        v-for="(file, index) in object.childFiles"
+        :key="index"
+        :object="file"
+        :is-folder="false"
+      />
+      <li v-if="isFolder">
         <span
           :style="{ color: this.$vuetify.theme.primary }"
           class="filespace-button"
-          @click="addChild"
+          @click="addChildFolder"
         >
           [New folder]
         </span>
       </li>
-      <li>
+      <li v-if="isFolder">
         <span
           :style="{ color: this.$vuetify.theme.primary }"
           class="filespace-button"
@@ -106,8 +108,12 @@ import logger from '../logger';
 
 export default {
   props: {
-    id: {
-      type: Number,
+    object: {
+      type: Object,
+      required: true,
+    },
+    isFolder: {
+      type: Boolean,
       required: true,
     },
   },
@@ -119,24 +125,22 @@ export default {
       errorMessage: '',
     };
   },
-  computed: {
-    isFolder() {
-      return this.$store.state.filespace.filespace[this.id].files;
-    },
-  },
   methods: {
     toggle() {
-      if (this.isFolder) {
-        this.open = !this.open;
-      }
+      this.open = !this.open;
     },
-    addChild() {
+    addChildFolder() {
       this.$store.dispatch('openStringPrompt', {
         text: 'Enter folder name',
         value: '',
       }).then((value) => {
+        const newFolder = {
+          id: Date.now(),
+          name: value,
+        };
         if (value) {
-          this.$store.dispatch('addChildFolder', { parentIndex: this.id, index: Date.now(), content: { name: value, files: [], folders: [] } }).then(() => {
+          this.$store.dispatch('addFolder', { id: newFolder.id, name: newFolder.name, parentId: this.object.id }).then(() => {
+            this.object.childFolders.push(newFolder);
           }, (err) => {
             logger.error(err);
           });
@@ -167,13 +171,26 @@ export default {
       };
 
       this.axios.post('/ipfs/upload', formData, config).then((response) => {
-        const newContent = JSON.parse(JSON.stringify(this.$store.state.filespace.filespace[this.id])); // need to clone it
-        newContent.files.push({
+        const id = Date.now();
+        const newFile = {
           name: file.name,
-          hash: response.data.hash,
-        });
-
-        this.$store.dispatch('addFolder', { index: this.id, content: newContent }).then(() => {
+          id,
+          currentVersion: {
+            id,
+            date: Date.now(),
+            ipfsHash: response.data.ipfsHash,
+            sha256: response.data.sha256,
+          },
+        };
+        this.$store.dispatch('addFile', {
+          id,
+          name: newFile.name,
+          parentId: this.object.id,
+          date: newFile.currentVersion.date,
+          ipfsHash: newFile.currentVersion.ipfsHash,
+          sha256: newFile.currentVersion.sha256,
+        }).then(() => {
+          this.object.childFiles.push(newFile);
         }, (err) => {
           logger.error(err);
         });

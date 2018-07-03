@@ -7,9 +7,10 @@ file, You can obtain one at https://mozilla.org/MPL/2.0/.
 <template>
   <div>
     <scatter-setup/>
-    <ul v-if="$store.state.filespace.filespace">
+    <ul v-if="$store.state.filespace.root">
       <filespace-item
-        :id="0"
+        :object="$store.state.filespace.root"
+        :is-folder="true"
       />
     </ul>
   </div>
