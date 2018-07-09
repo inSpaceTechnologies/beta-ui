@@ -40,6 +40,17 @@ Vue.component('scatter-setup', scatterSetupComponent);
 Vue.component('filespace-item', filespaceItemComponent);
 Vue.component('string-prompt', stringPromptComponent);
 
+// asyncronously create Scatter help page component
+const scatterHelpComponent = Vue.component('scatter-help', (resolve /* , reject */) => {
+  // create a new instance without the base URL
+  const newAxios = axios.create({
+    baseURL: null,
+  });
+  newAxios.get('/scatter-help.html').then((response) => {
+    resolve({ template: response.data });
+  });
+});
+
 // vue-router
 
 const router = new VueRouter({
@@ -77,6 +88,11 @@ const router = new VueRouter({
       name: 'signup',
       component: signupComponent,
       meta: { auth: false },
+    },
+    {
+      path: '/scatterhelp',
+      name: 'scatter-help',
+      component: scatterHelpComponent,
     },
     {
       path: '/404',

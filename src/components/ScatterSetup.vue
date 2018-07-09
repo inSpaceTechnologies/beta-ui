@@ -9,6 +9,15 @@ file, You can obtain one at https://mozilla.org/MPL/2.0/.
 
     <v-card-title primary-title>
       <h2>Scatter setup</h2>
+      <p>
+        <a
+          class="no-underline"
+          target="_blank"
+          href="/scatterhelp"
+        >
+          Help
+        </a>
+      </p>
     </v-card-title>
 
     <v-stepper :value="val">
@@ -103,7 +112,11 @@ file, You can obtain one at https://mozilla.org/MPL/2.0/.
     </v-stepper>
   </v-card>
 </template>
-
+<style scoped>
+.no-underline {
+  text-decoration: none;
+}
+</style>
 <script>
 export default {
   data() {
