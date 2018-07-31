@@ -27,7 +27,7 @@ const mutations = {
 
     const eosOptions = {};
 
-    const eos = scatter.eos(state.network, Eos.Localnet, eosOptions);
+    const eos = scatter.eos(state.network, Eos, eosOptions);
 
     state.eos = eos;
   },

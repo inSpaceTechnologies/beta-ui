@@ -111,7 +111,13 @@ Vue.router = router;
 
 // Scatter
 
-const network = { blockchain: 'eos', host: process.env.EOS_HOST, port: process.env.EOS_PORT };
+const network = {
+  protocol: 'http',
+  blockchain: 'eos',
+  host: process.env.EOS_HOST,
+  port: process.env.EOS_PORT,
+  chainId: process.env.EOS_CHAIN_ID,
+};
 
 document.addEventListener('scatterLoaded', () => {
   // Scatter will now be available from the window scope.
