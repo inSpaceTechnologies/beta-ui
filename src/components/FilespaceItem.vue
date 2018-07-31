@@ -34,7 +34,7 @@ file, You can obtain one at https://mozilla.org/MPL/2.0/.
       </span>
       <a
         v-if="!isFolder && object.currentVersion"
-        :href="ipfsGateway + '/ipfs/' + object.currentVersion.ipfsHash"
+        :href="ipfsGateway + '/ipfs/' + object.currentVersion.ipfs_hash"
         :download="object.name"
         target="_blank"
         class="no-underline"
@@ -178,7 +178,7 @@ export default {
           currentVersion: {
             id,
             date: Date.now(),
-            ipfsHash: response.data.ipfsHash,
+            ipfs_hash: response.data.ipfsHash,
             sha256: response.data.sha256,
           },
         };
@@ -187,7 +187,7 @@ export default {
           name: newFile.name,
           parentId: this.object.id,
           date: newFile.currentVersion.date,
-          ipfsHash: newFile.currentVersion.ipfsHash,
+          ipfsHash: newFile.currentVersion.ipfs_hash,
           sha256: newFile.currentVersion.sha256,
         }).then(() => {
           this.object.childFiles.push(newFile);
