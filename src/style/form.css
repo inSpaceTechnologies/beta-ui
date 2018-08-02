@@ -9,6 +9,7 @@ file, You can obtain one at https://mozilla.org/MPL/2.0/.
 }
 .form-element {
 	display: flex;
+  align-items: center;
 }
 .form-element.right {
 	justify-content: flex-end;
