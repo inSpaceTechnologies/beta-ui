@@ -18,6 +18,11 @@ import WebFont from 'webfontloader';
 
 import 'reset-css/reset.css';
 
+// font awesome
+import { library } from '@fortawesome/fontawesome-svg-core';
+import { faHome, faSignInAlt, faSignOutAlt, faUserPlus } from '@fortawesome/free-solid-svg-icons';
+import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
+
 // components
 import appComponent from './components/App.vue';
 
@@ -56,6 +61,14 @@ Vue.component('filespace-item', filespaceItemComponent);
 Vue.component('string-prompt', stringPromptComponent);
 Vue.component('alert', alertComponent);
 Vue.component('modal-dialog', modalDialogComponent);
+
+// font awesome
+library.add(faHome);
+library.add(faSignInAlt);
+library.add(faSignOutAlt);
+library.add(faUserPlus);
+Vue.component('font-awesome-icon', FontAwesomeIcon);
+Vue.config.productionTip = false;
 
 // vue-router
 

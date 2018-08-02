@@ -12,6 +12,9 @@
   "author": "",
   "license": "MPL-2.0",
   "dependencies": {
+    "@fortawesome/fontawesome-svg-core": "^1.2.2",
+    "@fortawesome/free-solid-svg-icons": "^5.2.0",
+    "@fortawesome/vue-fontawesome": "^0.1.1",
     "@websanova/vue-auth": "^2.21.9-beta",
     "axios": "^0.18.0",
     "eosjs": "^15.0.1",

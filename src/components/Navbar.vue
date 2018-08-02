@@ -21,6 +21,7 @@ file, You can obtain one at https://mozilla.org/MPL/2.0/.
       exact
       class="router-link"
     >
+      <font-awesome-icon icon="home" />
       Home
     </router-link>
     <template v-if="!$auth.check()">
@@ -29,6 +30,7 @@ file, You can obtain one at https://mozilla.org/MPL/2.0/.
         exact
         class="router-link"
       >
+        <font-awesome-icon icon="sign-in-alt" />
         Log in
       </router-link>
       <router-link
@@ -36,6 +38,7 @@ file, You can obtain one at https://mozilla.org/MPL/2.0/.
         exact
         class="router-link"
       >
+        <font-awesome-icon icon="user-plus" />
         Sign up
       </router-link>
     </template>
@@ -45,6 +48,7 @@ file, You can obtain one at https://mozilla.org/MPL/2.0/.
         class="router-link"
         @click="logout()"
       >
+        <font-awesome-icon icon="sign-out-alt" />
         Log out
       </a>
     </template>
