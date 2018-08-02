@@ -5,52 +5,76 @@ License, v. 2.0. If a copy of the MPL was not distributed with this
 file, You can obtain one at https://mozilla.org/MPL/2.0/.
 -->
 <template>
-  <v-toolbar>
-    <v-btn
+  <div class="navbar">
+    <router-link
       :to="{ name: 'home' }"
-      active-class
       exact
-      flat
+      class="router-link logo-link"
     >
-      <v-toolbar-title>inSpace</v-toolbar-title>
-    </v-btn>
-    <v-spacer/>
-    <v-toolbar-items>
-      <v-btn
-        :to="{name: 'home'}"
-        exact
-        flat
+      <img
+        class="logo-img"
+        src="../images/inspace-logo.png"
       >
-        Home
-      </v-btn>
-    </v-toolbar-items>
-    <v-toolbar-items v-show="!$auth.check()">
-      <v-btn
+    </router-link>
+    <router-link
+      :to="{name: 'home'}"
+      exact
+      class="router-link"
+    >
+      Home
+    </router-link>
+    <template v-if="!$auth.check()">
+      <router-link
         :to="{name: 'login'}"
         exact
-        flat
+        class="router-link"
       >
         Log in
-      </v-btn>
-      <v-btn
+      </router-link>
+      <router-link
         :to="{name: 'signup'}"
         exact
-        flat
+        class="router-link"
       >
         Sign up
-      </v-btn>
-    </v-toolbar-items>
-    <v-toolbar-items v-show="$auth.check()">
-      <v-btn
-        flat
+      </router-link>
+    </template>
+    <template v-if="$auth.check()">
+      <a
+        href=""
+        class="router-link"
         @click="logout()"
       >
         Log out
-      </v-btn>
-    </v-toolbar-items>
-  </v-toolbar>
+      </a>
+    </template>
+  </div>
 </template>
-
+<style scoped>
+.navbar {
+  display: flex;
+  background-color: #404040;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: center;
+  padding: 0 0.5rem;
+}
+.router-link {
+    color: rgba(255,255,255,0.5);
+    padding: 0.5rem;
+    text-decoration: none;
+}
+.router-link-exact-active {
+    color: rgba(255,255,255,1.0);
+}
+.logo-link {
+    flex-grow: 1;
+}
+.logo-img {
+  height: 2.45rem;
+  width: auto;
+}
+</style>
 <script>
 export default {
   methods: {

@@ -114,11 +114,15 @@ const storeMutations = {
   */
 };
 
+function getAccountName(rootState) {
+  return rootState.scatter.scatter.identity.accounts.find(acc => acc.blockchain === 'eos').name;
+}
+
 const storeActions = {
   addFolder({ rootState }, { id, name, parentId }) {
     return new Promise((resolve, reject) => {
       rootState.scatter.eos.contract('filespace').then((filespace) => {
-        const accountName = rootState.scatter.identity.accounts.find(acc => acc.blockchain === 'eos').name;
+        const accountName = getAccountName(rootState);
         filespace.addfolder(accountName, id, name, parentId, { authorization: accountName }).then(() => {
           resolve();
         });
@@ -136,7 +140,7 @@ const storeActions = {
     sha256,
   }) {
     return new Promise((resolve, reject) => {
-      const accountName = rootState.scatter.identity.accounts.find(acc => acc.blockchain === 'eos').name;
+      const accountName = getAccountName(rootState);
       const data = {};
       rootState.scatter.eos.contract('filespace')
         .then((filespace) => {
@@ -155,7 +159,7 @@ const storeActions = {
   },
   getFilespace({ dispatch, commit, rootState }) {
     return new Promise((resolve) => {
-      const accountName = rootState.scatter.identity.accounts.find(acc => acc.blockchain === 'eos').name;
+      const accountName = getAccountName(rootState);
       getFilespaceData(rootState.scatter.eos, accountName).then((rootFolder) => {
         if (rootFolder) {
           commit('setRoot', rootFolder);

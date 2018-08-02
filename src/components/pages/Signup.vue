@@ -5,98 +5,113 @@ License, v. 2.0. If a copy of the MPL was not distributed with this
 file, You can obtain one at https://mozilla.org/MPL/2.0/.
 -->
 <template>
-  <div>
-    <h1>Sign up</h1>
-
-    <v-form
-      ref="form"
-      v-model="valid"
-      lazy-validation
-    >
-
-      <v-alert
-        v-show="error"
-        :value="true"
-        type="error"
-      >
-        {{ error }}
-      </v-alert>
-
-      <v-text-field
-        v-model="data.body.email"
-        :rules="emailRules"
-        label="Email address"
-        required
-      />
-
-      <v-text-field
-        v-model="data.body.password"
-        :append-icon="passwordVisible ? 'visibility_off' : 'visibility'"
-        :append-icon-cb="() => (passwordVisible = !passwordVisible)"
-        :type="passwordVisible ? 'password' : 'text'"
-        label="Password"
-      />
-
-      <v-checkbox
-        v-model="data.autoLogin"
-        label="Auto Login"
-      />
-
-      <v-checkbox
-        v-model="data.rememberMe"
-        label="Remember Me"
-      />
-
-      <v-btn
-        :disabled="!valid"
-        @click="signup"
-      >
-        Sign up
-      </v-btn>
-    </v-form>
+  <div class="central small">
+    <div class="card">
+      <div class="card-header">
+        <span class="card-title">
+          Create a new account
+        </span>
+      </div>
+      <div class="card-content">
+        <form>
+          <div class="form-element align">
+            <label for="email">
+              Email:
+            </label>
+            <input
+              id="email"
+              v-model="data.body.email"
+              type="text"
+              name="email"
+            >
+          </div>
+          <div class="form-element align">
+            <label for="email">
+              Password:
+            </label>
+            <input
+              id="password"
+              v-model="data.body.password"
+              type="text"
+              name="password"
+            >
+          </div>
+          <div class="form-element">
+            <input
+              id="auto-login"
+              v-model="data.autoLogin"
+              type="checkbox"
+            >
+            <label for="auto-login">
+              Auto login
+            </label>
+          </div>
+          <div class="form-element">
+            <input
+              id="remember"
+              v-model="data.remember"
+              type="checkbox"
+            >
+            <label for="remember">
+              Remember me
+            </label>
+          </div>
+          <div class="form-element right">
+            <button
+              type="button"
+              @click="signup"
+            >
+              Sign up
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+    <alert
+      :title="alertTitle"
+      :text="alertText"
+      :trigger-show="showAlert"
+    />
   </div>
 </template>
 <script>
 export default {
   data() {
     return {
-      valid: true,
-      passwordVisible: true,
-      emailRules: [
-        v => !!v || 'Email is required',
-        v => /^\w+([.-]?\w+)*@\w+([.-]?\w+)*(\.\w{2,3})+$/.test(v) || 'Email must be valid',
-      ],
       data: {
         body: {
           email: '',
           password: '',
         },
         autoLogin: false,
-        rememberMe: false,
+        remember: false,
       },
-      error: null,
+      showAlert: false,
+      alertTitle: '',
+      alertText: '',
     };
   },
   methods: {
     signup() {
-      if (this.$refs.form.validate()) {
-        let redirect = 'login';
-        if (this.data.autoLogin) {
-          redirect = 'home';
-        }
-        this.$auth.register({
-          // url: '/signup',
-          data: this.data.body,
-          autoLogin: this.data.autoLogin,
-          rememberMe: this.data.rememberMe,
-          redirect: { name: redirect },
-          success() {
-          },
-          error(res) {
-            this.error = res.response.data;
-          },
-        });
+      let redirect = 'login';
+      if (this.data.autoLogin) {
+        redirect = 'home';
       }
+      this.$auth.register({
+        // url: '/signup',
+        data: this.data.body,
+        autoLogin: this.data.autoLogin,
+        rememberMe: this.data.remember,
+        redirect: { name: redirect },
+        success() {
+        },
+        error(res) {
+          this.alertTitle = 'Error';
+          this.alertText = res.response.data;
+          // need to flip it
+          this.showAlert = !this.showAlert;
+        },
+      });
     },
   },
 };

@@ -3,7 +3,6 @@
 const path = require('path');
 const { VueLoaderPlugin } = require('vue-loader');
 
-
 module.exports = {
   entry: './src/index.js',
   output: {
@@ -26,10 +25,10 @@ module.exports = {
         loader: ['style-loader', 'css-loader'],
       },
       {
-        test: /\.(ttf|woff|woff2|eot)$/,
-        loader: 'file-loader',
+        test: /\.(png|svg|jpg|gif)$/,
+        /* it's nice if the page doesn't get shown with missing branding, so use url-loader not file-loader */
+        loader: 'url-loader',
       },
-
     ],
   },
   plugins: [

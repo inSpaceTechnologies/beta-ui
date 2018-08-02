@@ -8,13 +8,48 @@ file, You can obtain one at https://mozilla.org/MPL/2.0/.
   <div>
     <h1>IPFS</h1>
     <p>Status: {{ ipfsStatus }}</p>
-    <v-btn @click="checkIPFSStatus">Check status</v-btn>
-    <v-btn @click="startIPFS">Start</v-btn>
-    <v-btn @click="stopIPFS">Stop</v-btn>
-    <v-btn @click="initIPFS">Init</v-btn>
-    <v-btn @click="deleteIPFS">Delete</v-btn>
-    <v-btn @click="getIPFSConfig">Get config</v-btn>
-    <v-btn @click="getIPFSPinned">List pinned</v-btn>
+    <button
+      type="button"
+      @click="checkIPFSStatus"
+    >
+      Check status
+    </button>
+    <button
+      type="button"
+      @click="startIPFS"
+    >
+      Start
+    </button>
+    <button
+      type="button"
+      @click="stopIPFS"
+    >
+      Stop
+    </button>
+    <button
+      type="button"
+      @click="initIPFS"
+    >
+      Init
+    </button>
+    <button
+      type="button"
+      @click="deleteIPFS"
+    >
+      Delete
+    </button>
+    <button
+      type="button"
+      @click="getIPFSConfig"
+    >
+      Get config
+    </button>
+    <button
+      type="button"
+      @click="getIPFSPinned"
+    >
+      List pinned
+    </button>
     <div v-if="ipfsConfig">
       <h2>Config</h2>
       <span

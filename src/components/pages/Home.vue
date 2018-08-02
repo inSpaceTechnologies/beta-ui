@@ -5,15 +5,44 @@ License, v. 2.0. If a copy of the MPL was not distributed with this
 file, You can obtain one at https://mozilla.org/MPL/2.0/.
 -->
 <template>
-  <div>
-    <scatter-setup/>
-    <ul v-if="$store.state.filespace.root">
-      <filespace-item
-        :object="$store.state.filespace.root"
-        :is-folder="true"
-      />
-    </ul>
+  <div
+    id="home-wrapper"
+  >
+    <div
+      v-if="!$store.state.scatter.scatter || !$store.state.scatter.identitySet"
+      class="central"
+    >
+      <scatter-setup/>
+    </div>
+    <div
+      v-else-if="$store.state.filespace.root"
+      id="filespace-background"
+      class="semitransparent"
+    >
+      <ul
+        class="central filespace"
+      >
+        <filespace-item
+          :object="$store.state.filespace.root"
+          :is-folder="true"
+        />
+      </ul>
+    </div>
   </div>
 </template>
+<style scoped>
+#home-wrapper {
+  display: flex;
+  flex-grow: 1;
+}
+#filespace-background {
+  display: flex;
+  flex-grow: 1;
+}
+.filespace {
+  line-height: 1.5;
+  margin-top: 2rem;
+}
+</style>
 <script>
 </script>

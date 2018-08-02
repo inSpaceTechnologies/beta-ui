@@ -1,0 +1,61 @@
+/*
+Copyright (c) 2018 inSpace Technologies Ltd
+This Source Code Form is subject to the terms of the Mozilla Public
+License, v. 2.0. If a copy of the MPL was not distributed with this
+file, You can obtain one at https://mozilla.org/MPL/2.0/.
+*/
+a {
+  color: #0275d8;
+  text-decoration: none;
+}
+
+ul {
+  padding-left: 1em;
+}
+li {
+  list-style: disc;
+  line-height: 1.5;
+}
+
+p {
+  line-height: 1.5;
+}
+p:not(:last-child) {
+    margin-bottom: 1rem;
+}
+
+h2 {
+    font-size: 125%;
+    font-weight: 500;
+    margin-bottom: 1rem;
+}
+h2:not(:first-child) {
+    margin-top: 1rem;
+}
+
+button {
+  border: 0px;
+  border-radius: .25rem;
+  line-height: 1.25;
+  padding: .5rem 1rem
+}
+button.primary {
+  color: #fff;
+  background-color: #0275d8;
+}
+
+.primary {
+  color: #0275d8;
+}
+
+.semitransparent {
+  background: rgba(242, 242, 242, 0.85);
+}
+
+#content {
+  /* background */
+  background-color: black;
+  background: url(../images/background.jpg) no-repeat top center;
+  background-size: cover;
+  background-attachment: fixed;
+}

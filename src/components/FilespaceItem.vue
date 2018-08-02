@@ -6,28 +6,18 @@ file, You can obtain one at https://mozilla.org/MPL/2.0/.
 -->
 <template>
   <li class="filespace-item">
-    <v-snackbar
-      v-model="errorSnackbar"
-      :timeout="6000"
-      :top="true"
-      color="error"
-    >
-      {{ errorMessage }}
-      <v-btn
-        flat
-        @click="errorSnackbar = false"
-      >
-        Close
-      </v-btn>
-    </v-snackbar>
+    <alert
+      :title="alertTitle"
+      :text="alertText"
+      :trigger-show="showAlert"
+    />
     <div
       :class="{ folder: isFolder }"
     >
       {{ object.name }}
       <span
         v-if="isFolder"
-        :style="{ color: this.$vuetify.theme.primary }"
-        class="filespace-button"
+        class="filespace-button primary"
         @click="toggle"
       >
         [{{ open ? '-' : '+' }}]
@@ -37,7 +27,6 @@ file, You can obtain one at https://mozilla.org/MPL/2.0/.
         :href="ipfsGateway + '/ipfs/' + object.currentVersion.ipfs_hash"
         :download="object.name"
         target="_blank"
-        class="no-underline"
       >
         [Download]
       </a>
@@ -60,8 +49,7 @@ file, You can obtain one at https://mozilla.org/MPL/2.0/.
       />
       <li v-if="isFolder">
         <span
-          :style="{ color: this.$vuetify.theme.primary }"
-          class="filespace-button"
+          class="filespace-button primary"
           @click="addChildFolder"
         >
           [New folder]
@@ -69,8 +57,7 @@ file, You can obtain one at https://mozilla.org/MPL/2.0/.
       </li>
       <li v-if="isFolder">
         <span
-          :style="{ color: this.$vuetify.theme.primary }"
-          class="filespace-button"
+          class="filespace-button primary"
           @click="startUpload"
         >
           [Upload file]
@@ -86,21 +73,12 @@ file, You can obtain one at https://mozilla.org/MPL/2.0/.
   </li>
 </template>
 <style scoped>
-ul {
-  padding-left: 1em;
-}
 .folder {
   font-weight:bold;
   list-style-type: disc;
 }
 .filespace-button {
   cursor: pointer;
-}
-.filespace-button {
-  cursor: pointer;
-}
-.no-underline {
-  text-decoration: none;
 }
 </style>
 <script>
@@ -121,8 +99,9 @@ export default {
     return {
       open: false,
       ipfsGateway: process.env.IPFS_GATEWAY,
-      errorSnackbar: false,
-      errorMessage: '',
+      showAlert: false,
+      alertTitle: '',
+      alertText: '',
     };
   },
   methods: {

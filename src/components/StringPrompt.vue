@@ -5,43 +5,40 @@ License, v. 2.0. If a copy of the MPL was not distributed with this
 file, You can obtain one at https://mozilla.org/MPL/2.0/.
 -->
 <template>
-  <v-layout
-    v-if="this.$store.state.stringPrompt.active"
-    row
-    justify-center
-  >
-    <v-dialog
-      value="this.$store.state.stringPrompt.active"
-      persistent
-      max-width="500px"
-    >
-      <v-card>
-        <v-card-text>
-          <v-text-field
-            :label="this.$store.state.stringPrompt.text"
+  <modal-dialog :show="this.$store.state.stringPrompt.active">
+    <div class="card">
+      <div class="card-header">
+        <span class="card-title">
+          {{ this.$store.state.stringPrompt.text }}
+        </span>
+      </div>
+      <div class="card-content">
+        <div class="form-element">
+          <input
+            id="val"
             :value="value"
+            type="text"
+            name="val"
             @input="updateValue"
-          />
-        </v-card-text>
-        <v-card-actions>
-          <v-spacer/>
-          <v-btn
-            color="primary"
-            flat
-            @click.native="confirm"
+          >
+        </div>
+        <div class="form-element">
+          <button
+            type="button"
+            @click="confirm"
           >
             Ok
-          </v-btn>
-          <v-btn
-            flat
-            @click.native="cancel"
+          </button>
+          <button
+            type="button"
+            @click="cancel"
           >
             Cancel
-          </v-btn>
-        </v-card-actions>
-      </v-card>
-    </v-dialog>
-  </v-layout>
+          </button>
+        </div>
+      </div>
+    </div>
+  </modal-dialog>
 </template>
 
 <script>
@@ -54,8 +51,8 @@ export default {
     }),
   },
   methods: {
-    updateValue(v) {
-      this.$store.commit('setValue', v);
+    updateValue(event) {
+      this.$store.commit('setValue', event.target.value);
     },
     confirm() {
       this.$store.state.stringPrompt.resolve(this.value);

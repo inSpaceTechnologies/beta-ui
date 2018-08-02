@@ -8,16 +8,17 @@ import Vue from 'vue';
 import VueRouter from 'vue-router';
 import axios from 'axios';
 import VueAxios from 'vue-axios';
-import Vuetify from 'vuetify';
 
 import VueAuth from '@websanova/vue-auth';
 import VueAuthBearer from '@websanova/vue-auth/drivers/auth/bearer';
 import VueAuthAxios from '@websanova/vue-auth/drivers/http/axios.1.x';
 import VueAuthRouter from '@websanova/vue-auth/drivers/router/vue-router.2.x';
 
-import 'material-design-icons-iconfont/dist/material-design-icons.css';
-import 'vuetify/dist/vuetify.min.css';
+import WebFont from 'webfontloader';
 
+import 'reset-css/reset.css';
+
+// components
 import appComponent from './components/App.vue';
 
 import homeComponent from './components/pages/Home.vue';
@@ -30,26 +31,31 @@ import navbarComponent from './components/Navbar.vue';
 import scatterSetupComponent from './components/ScatterSetup.vue';
 import filespaceItemComponent from './components/FilespaceItem.vue';
 import stringPromptComponent from './components/StringPrompt.vue';
+import alertComponent from './components/Alert.vue';
+import modalDialogComponent from './components/ModalDialog.vue';
 
 import store from './store';
 
-// components
+// custom CSS
+import './style/theme.css';
+import './style/card.css';
+import './style/form.css';
+import './style/modal-dialog.css';
 
+// load font synchronously so it is available immediately
+WebFont.load({
+  google: {
+    families: ['Roboto'],
+  },
+});
+
+// register components
 Vue.component('navbar', navbarComponent);
 Vue.component('scatter-setup', scatterSetupComponent);
 Vue.component('filespace-item', filespaceItemComponent);
 Vue.component('string-prompt', stringPromptComponent);
-
-// asyncronously create Scatter help page component
-const scatterHelpComponent = Vue.component('scatter-help', (resolve /* , reject */) => {
-  // create a new instance without the base URL
-  const newAxios = axios.create({
-    baseURL: null,
-  });
-  newAxios.get('/scatter-help.html').then((response) => {
-    resolve({ template: response.data });
-  });
-});
+Vue.component('alert', alertComponent);
+Vue.component('modal-dialog', modalDialogComponent);
 
 // vue-router
 
@@ -90,11 +96,6 @@ const router = new VueRouter({
       meta: { auth: false },
     },
     {
-      path: '/scatterhelp',
-      name: 'scatter-help',
-      component: scatterHelpComponent,
-    },
-    {
       path: '/404',
       name: '404',
       component: notFoundComponent,
@@ -131,14 +132,7 @@ document.addEventListener('scatterLoaded', () => {
   // It is good practice to take this off the window once you have
   // a reference to it.
   window.scatter = null;
-
-  // it's possible that we already have an identity
-  store.dispatch('confirmIdentity');
 });
-
-// vuetify
-
-Vue.use(Vuetify);
 
 // vue-axios
 

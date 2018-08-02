@@ -22,13 +22,11 @@ const store = new Vuex.Store({
   },
 });
 
-store.watch(state => state.scatter.identity, (identity) => {
-  if (identity) {
-    store.dispatch('getFilespace').then(() => {
-    }, (err) => {
-      logger.error(err.message);
-    });
-  }
+store.watch(state => state.scatter.identitySet, () => {
+  store.dispatch('getFilespace').then(() => {
+  }, (err) => {
+    logger.error(err.message);
+  });
 });
 
 export default store;

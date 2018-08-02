@@ -5,90 +5,100 @@ License, v. 2.0. If a copy of the MPL was not distributed with this
 file, You can obtain one at https://mozilla.org/MPL/2.0/.
 -->
 <template>
-  <div>
-    <h1>Log in</h1>
-
-    <v-form
-      ref="form"
-      v-model="valid"
-      lazy-validation
-    >
-
-      <v-alert
-        v-show="error"
-        :value="true"
-        type="error"
-      >
-        {{ error }}
-      </v-alert>
-
-      <v-text-field
-        v-model="data.body.email"
-        :rules="emailRules"
-        label="Email address"
-        required
-      />
-
-      <v-text-field
-        v-model="data.body.password"
-        :append-icon="passwordVisible ? 'visibility_off' : 'visibility'"
-        :append-icon-cb="() => (passwordVisible = !passwordVisible)"
-        :type="passwordVisible ? 'password' : 'text'"
-        label="Password"
-      />
-
-      <v-checkbox
-        v-model="data.rememberMe"
-        label="Remember Me"
-      />
-
-      <v-btn
-        :disabled="!valid"
-        @click="login"
-      >
-        Log in
-      </v-btn>
-    </v-form>
+  <div class="central small">
+    <div class="card">
+      <div class="card-header">
+        <span class="card-title">
+          Log in
+        </span>
+      </div>
+      <div class="card-content">
+        <form>
+          <div class="form-element align">
+            <label for="email">
+              Email:
+            </label>
+            <input
+              id="email"
+              v-model="data.body.email"
+              type="text"
+              name="email"
+            >
+          </div>
+          <div class="form-element align">
+            <label for="email">
+              Password:
+            </label>
+            <input
+              id="password"
+              v-model="data.body.password"
+              type="text"
+              name="password"
+            >
+          </div>
+          <div class="form-element">
+            <input
+              id="remember"
+              v-model="data.remember"
+              type="checkbox"
+            >
+            <label for="remember">
+              Remember me
+            </label>
+          </div>
+          <div class="form-element right">
+            <button
+              type="button"
+              @click="login"
+            >
+              Log in
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+    <alert
+      :title="alertTitle"
+      :text="alertText"
+      :trigger-show="showAlert"
+    />
   </div>
 </template>
 <script>
 export default {
   data() {
     return {
-      valid: true,
-      passwordVisible: true,
-      emailRules: [
-        v => !!v || 'Email is required',
-        v => /^\w+([.-]?\w+)*@\w+([.-]?\w+)*(\.\w{2,3})+$/.test(v) || 'Email must be valid',
-      ],
       data: {
         body: {
           email: '',
           password: '',
         },
-        rememberMe: false,
+        remember: false,
       },
-      error: null,
+      showAlert: false,
+      alertTitle: '',
+      alertText: '',
     };
   },
   methods: {
     login() {
-      if (this.$refs.form.validate()) {
-        const redirect = this.$auth.redirect();
+      const redirect = this.$auth.redirect();
 
-        this.$auth.login({
-          // url: '/login',
-          data: this.data.body,
-          rememberMe: this.data.rememberMe,
-          // if we were redirected to this login page, go back after login
-          redirect: { name: redirect ? redirect.from.name : 'home' },
-          success() {
-          },
-          error(res) {
-            this.error = res.response.data;
-          },
-        });
-      }
+      this.$auth.login({
+        // url: '/login',
+        data: this.data.body,
+        rememberMe: this.data.remember,
+        // if we were redirected to this login page, go back after login
+        redirect: { name: redirect ? redirect.from.name : 'home' },
+        success() {
+        },
+        error(res) {
+          this.alertTitle = 'Error';
+          this.alertText = res.response.data;
+          // need to flip it
+          this.showAlert = !this.showAlert;
+        },
+      });
     },
   },
 };
