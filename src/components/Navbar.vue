@@ -68,6 +68,9 @@ file, You can obtain one at https://mozilla.org/MPL/2.0/.
     padding: 0.5rem;
     text-decoration: none;
 }
+.router-link:hover:not(.router-link-exact-active) {
+  color: rgba(255,255,255,0.75);
+}
 .router-link-exact-active {
     color: rgba(255,255,255,1.0);
 }
