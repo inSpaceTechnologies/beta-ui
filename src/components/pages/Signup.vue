@@ -67,14 +67,11 @@ file, You can obtain one at https://mozilla.org/MPL/2.0/.
         </form>
       </div>
     </div>
-    <alert
-      :title="alertTitle"
-      :text="alertText"
-      :trigger-show="showAlert"
-    />
   </div>
 </template>
 <script>
+import logger from '../../logger';
+
 export default {
   data() {
     return {
@@ -86,9 +83,6 @@ export default {
         autoLogin: false,
         remember: false,
       },
-      showAlert: false,
-      alertTitle: '',
-      alertText: '',
     };
   },
   methods: {
@@ -106,10 +100,14 @@ export default {
         success() {
         },
         error(res) {
-          this.alertTitle = 'Error';
-          this.alertText = res.response.data;
-          // need to flip it
-          this.showAlert = !this.showAlert;
+          logger.notify({
+            title: 'Error',
+            text: res.response.data,
+            type: 'error',
+            permanent: false,
+            sticky: true,
+            buttons: [],
+          });
         },
       });
     },

@@ -84,6 +84,17 @@ file, You can obtain one at https://mozilla.org/MPL/2.0/.
 <script>
 import logger from '../logger';
 
+function notifyError(message) {
+  logger.notify({
+    title: 'Error',
+    text: message,
+    type: 'error',
+    permanent: false,
+    sticky: true,
+    buttons: [],
+  });
+}
+
 export default {
   props: {
     object: {
@@ -121,15 +132,14 @@ export default {
           this.$store.dispatch('addFolder', { id: newFolder.id, name: newFolder.name, parentId: this.object.id }).then(() => {
             this.object.childFolders.push(newFolder);
           }, (err) => {
-            logger.error(err);
+            notifyError(err);
           });
         }
       });
     },
     startUpload() {
       if (!this.$auth.check()) {
-        this.errorMessage = 'Please log in to upload files to inSpace storage.';
-        this.errorSnackbar = true;
+        notifyError('Please log in to upload files to inSpace storage.');
         return;
       }
       const fileInputElement = this.$refs.fileInput;
@@ -171,10 +181,10 @@ export default {
         }).then(() => {
           this.object.childFiles.push(newFile);
         }, (err) => {
-          logger.error(err);
+          notifyError(err);
         });
       }, (err) => {
-        logger.error(err);
+        notifyError(err);
       });
     },
   },

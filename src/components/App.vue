@@ -9,7 +9,13 @@ file, You can obtain one at https://mozilla.org/MPL/2.0/.
     <template v-if="$auth.ready()">
       <navbar id="navbar"/>
       <div id="content">
-        <router-view/>
+        <router-view class="z-index-1"/>
+        <div id="noty-parent">
+          <div
+            id="noty-container"
+            class="z-index-2"
+          />
+        </div>
       </div>
       <string-prompt/>
     </template>
@@ -48,6 +54,25 @@ body {
   display: flex;
 }
 
+/* needs to float on top */
+#noty-parent {
+  position: absolute;
+  width: 100%;
+  display: flex;
+  justify-content: flex-end;
+}
+/* needs a non-flexbox container */
+#noty-container {
+  display: block;
+}
+
+.z-index-1 {
+  z-index: 1;
+}
+.z-index-2 {
+  z-index: 2;
+}
+
 .central {
     max-width: 55.5rem;
     margin: 0 auto;
@@ -58,4 +83,14 @@ body {
 }
 </style>
 <script>
+import logger from '../logger';
+
+export default {
+  watch: {
+    $route(/* to, from */) {
+      // clear notifications when page changes
+      logger.removeAll();
+    },
+  },
+};
 </script>

@@ -91,26 +91,25 @@ file, You can obtain one at https://mozilla.org/MPL/2.0/.
 import logger from '../logger';
 
 export default {
-  data() {
-    return {
-      requestIdentityError: null,
-      forgetIdentityError: null,
-    };
-  },
   methods: {
     addNetwork() {
       this.$store.dispatch('suggestNetwork');
     },
     requestIdentity() {
-      this.requestIdentityError = null;
       this.$store.dispatch('requestIdentity').then(() => {
       }, (err) => {
-        logger.error(err.message);
+        logger.notify({
+          title: 'Error',
+          text: err.message,
+          type: 'error',
+          permanent: false,
+          sticky: true,
+          buttons: [],
+        });
       });
     },
     /*
     forgetIdentity() {
-      this.forgetIdentityError = null;
       this.$store.dispatch('forgetIdentity').then(() => {
       }, (err) => {
         logger.error(err.message);

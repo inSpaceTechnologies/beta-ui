@@ -17,6 +17,8 @@ import VueAuthRouter from '@websanova/vue-auth/drivers/router/vue-router.2.x';
 import WebFont from 'webfontloader';
 
 import 'reset-css/reset.css';
+import 'noty/lib/noty.css';
+import 'noty/lib/themes/relax.css';
 
 // font awesome
 import { library } from '@fortawesome/fontawesome-svg-core';
