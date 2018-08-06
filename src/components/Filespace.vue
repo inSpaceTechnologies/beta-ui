@@ -11,15 +11,7 @@ file, You can obtain one at https://mozilla.org/MPL/2.0/.
       id="filespace-background"
       class="semitransparent"
     >
-      <ul
-        class="central filespace"
-      >
-        <filespace-item
-          :object="root"
-          :is-folder="true"
-          :account-name="accountName"
-        />
-      </ul>
+      <inspace-graph :root="root"/>
     </div>
     <div v-else>
       <p>Loading...</p>
@@ -41,10 +33,6 @@ file, You can obtain one at https://mozilla.org/MPL/2.0/.
   left: 0;
   /* for narrow screens (#content padding no longer applied due to the above) */
   padding: 0 2rem;
-}
-.filespace {
-  line-height: 1.5;
-  margin-top: 2rem;
 }
 </style>
 <script>

@@ -144,6 +144,7 @@ const storeActions = {
     if (parent) {
       parent.childFolders.push(newFolder);
     }
+    return newFolder;
   },
   async addFile({ rootState, rootGetters }, {
     id,
@@ -227,6 +228,7 @@ const storeActions = {
       currentVersion: version,
     };
     parent.childFiles.push(newFile);
+    return newFile;
   },
   async deleteFolder({ rootState, rootGetters }, {
     object,

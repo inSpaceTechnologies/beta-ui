@@ -1,5 +1,6 @@
 /* eslint-disable import/no-extraneous-dependencies */
 
+const webpack = require('webpack');
 const path = require('path');
 const { VueLoaderPlugin } = require('vue-loader');
 
@@ -33,5 +34,8 @@ module.exports = {
   },
   plugins: [
     new VueLoaderPlugin(),
+    new webpack.ProvidePlugin({
+      THREE: 'three-full', // three-bmfont-text requires global THREE
+    }),
   ],
 };

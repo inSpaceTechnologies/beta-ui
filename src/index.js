@@ -36,7 +36,7 @@ import purchasePageComponent from './components/pages/Purchase.vue';
 import iscoinPageComponent from './components/pages/Iscoin.vue';
 
 import navbarComponent from './components/Navbar.vue';
-import filespaceItemComponent from './components/FilespaceItem.vue';
+import inspaceGraphComponent from './components/InspaceGraph.vue';
 import stringPromptComponent from './components/StringPrompt.vue';
 import alertComponent from './components/Alert.vue';
 import modalDialogComponent from './components/ModalDialog.vue';
@@ -66,7 +66,7 @@ WebFont.load({
 
 // register components
 Vue.component('navbar', navbarComponent);
-Vue.component('filespace-item', filespaceItemComponent);
+Vue.component('inspace-graph', inspaceGraphComponent);
 Vue.component('string-prompt', stringPromptComponent);
 Vue.component('alert', alertComponent);
 Vue.component('modal-dialog', modalDialogComponent);
