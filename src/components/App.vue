@@ -52,6 +52,8 @@ body {
   /* adds scroll to this container */
   overflow-y: auto;
   display: flex;
+  /* this is needed for narrow screens */
+  padding: 0 1rem;
 }
 
 /* needs to float on top */

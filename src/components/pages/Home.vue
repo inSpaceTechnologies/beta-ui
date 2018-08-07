@@ -38,6 +38,13 @@ file, You can obtain one at https://mozilla.org/MPL/2.0/.
 #filespace-background {
   display: flex;
   flex-grow: 1;
+  /* make it fill the region */
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  left: 0;
+  /* for narrow screens (#content padding no longer applied due to the above) */
+  padding: 0 2rem;
 }
 .filespace {
   line-height: 1.5;
