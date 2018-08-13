@@ -99,19 +99,6 @@ const storeMutations = {
   setRoot(state, root) {
     state.root = root;
   },
-  /*
-  setFolder(state, { index, content }) {
-    if (!state.filespace) {
-      state.filespace = {};
-    }
-    // https://vuejs.org/v2/guide/reactivity.html#Change-Detection-Caveats
-    // state.filespace[index] = content;
-    Vue.set(state.filespace, index, content);
-  },
-  setFilespaceError(state, error) {
-    state.filespaceError = error;
-  },
-  */
 };
 
 function getAccountName(rootState) {
@@ -119,12 +106,26 @@ function getAccountName(rootState) {
 }
 
 const storeActions = {
-  addFolder({ rootState }, { id, name, parentId }) {
+  addFolder({ rootState }, { id, name, parent }) {
+    let parentId = 0;
+    if (parent) {
+      parentId = parent.id;
+    }
     return new Promise((resolve, reject) => {
       rootState.scatter.eos.contract('filespace').then((filespace) => {
         const accountName = getAccountName(rootState);
         filespace.addfolder(accountName, id, name, parentId, { authorization: accountName }).then(() => {
-          resolve();
+          const newFolder = {
+            id,
+            name,
+            childFiles: [],
+            childFolders: [],
+            parentId,
+          };
+          if (parent) {
+            parent.childFolders.push(newFolder);
+          }
+          resolve(newFolder);
         });
       }, (err) => {
         reject(err);
@@ -134,10 +135,10 @@ const storeActions = {
   addFile({ rootState }, {
     id,
     name,
-    parentId,
     date,
     ipfsHash,
     sha256,
+    parent,
   }) {
     return new Promise((resolve, reject) => {
       const accountName = getAccountName(rootState);
@@ -145,16 +146,71 @@ const storeActions = {
       rootState.scatter.eos.contract('filespace')
         .then((filespace) => {
           data.filespace = filespace;
-          return filespace.addfile(accountName, id, name, parentId, 0, { authorization: accountName });
+          return filespace.addfile(accountName, id, name, parent.id, 0, { authorization: accountName });
         })
         .then(() => data.filespace.addversion(accountName, id, ipfsHash, sha256, date, id, { authorization: accountName }))
         .then(() => data.filespace.setcurrentve(accountName, id, id, { authorization: accountName }))
         .then(() => {
-          resolve();
+          const version = {
+            id,
+            date,
+            ipfs_hash: ipfsHash,
+            sha256,
+          };
+          const newFile = {
+            name,
+            id,
+            versions: [version],
+            currentVersion: version,
+          };
+          parent.childFiles.push(newFile);
+          resolve(newFile);
         })
         .catch((err) => {
           reject(err);
         });
+    });
+  },
+  deleteFolder({ rootState }, {
+    object,
+    parent,
+  }) {
+    return new Promise((resolve, reject) => {
+      rootState.scatter.eos.contract('filespace').then((filespace) => {
+        const accountName = getAccountName(rootState);
+        filespace.deletefolder(accountName, object.id, { authorization: accountName }).then(() => {
+          if (parent) {
+            const index = parent.childFolders.indexOf(object);
+            parent.childFolders.splice(index, 1);
+          }
+          resolve();
+        }, (err) => {
+          reject(err);
+        });
+      }, (err) => {
+        reject(err);
+      });
+    });
+  },
+  deleteFile({ rootState }, {
+    object,
+    parent,
+  }) {
+    return new Promise((resolve, reject) => {
+      rootState.scatter.eos.contract('filespace').then((filespace) => {
+        const accountName = getAccountName(rootState);
+        filespace.deletefile(accountName, object.id, { authorization: accountName }).then(() => {
+          if (parent) {
+            const index = parent.childFiles.indexOf(object);
+            parent.childFiles.splice(index, 1);
+          }
+          resolve();
+        }, (err) => {
+          reject(err);
+        });
+      }, (err) => {
+        reject(err);
+      });
     });
   },
   getFilespace({ dispatch, commit, rootState }) {
@@ -167,14 +223,7 @@ const storeActions = {
           return;
         }
         // need to create the root
-        const newRoot = {
-          id: 1,
-          name: process.env.FILESPACE_ROOT_NAME,
-          childFiles: [],
-          childFolders: [],
-          parentId: 0,
-        };
-        dispatch('addFolder', { id: newRoot.id, name: newRoot.name, parentId: newRoot.parentId }).then(() => {
+        dispatch('addFolder', { id: 1, name: process.env.FILESPACE_ROOT_NAME, parent: null }).then((newRoot) => {
           commit('setRoot', newRoot);
           resolve();
         });
@@ -183,8 +232,36 @@ const storeActions = {
   },
 };
 
+const storeGetters = {
+  containsHash: state => (hash) => {
+    function search(folder) {
+      // check child files
+      let found = false;
+      folder.childFiles.forEach((childFile) => {
+        childFile.versions.forEach((version) => {
+          if (version.ipfs_hash === hash) {
+            found = true;
+          }
+        });
+      });
+      if (found) {
+        return true;
+      }
+      // check child folders
+      folder.childFolders.forEach((childFolder) => {
+        if (search(childFolder)) {
+          found = true;
+        }
+      });
+      return found;
+    }
+    return search(state.root);
+  },
+};
+
 export default {
   state: storeState,
   actions: storeActions,
   mutations: storeMutations,
+  getters: storeGetters,
 };

@@ -34,9 +34,9 @@ file, You can obtain one at https://mozilla.org/MPL/2.0/.
     </button>
     <button
       type="button"
-      @click="deleteIPFS"
+      @click="cleanupIPFS"
     >
-      Delete
+      Clean up
     </button>
     <button
       type="button"
@@ -135,8 +135,8 @@ export default {
         logger.error(err);
       });
     },
-    deleteIPFS() {
-      this.axios.put('/ipfs/delete').then((response) => {
+    cleanupIPFS() {
+      this.axios.put('/ipfs/cleanup').then((response) => {
         logger.log(response);
       }, (err) => {
         logger.error(err);
