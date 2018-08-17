@@ -4,6 +4,8 @@ This Source Code Form is subject to the terms of the Mozilla Public
 License, v. 2.0. If a copy of the MPL was not distributed with this
 file, You can obtain one at https://mozilla.org/MPL/2.0/.
 */
+import ScatterJS from 'scatter-js/dist/scatter.esm';
+
 import Vue from 'vue';
 import VueRouter from 'vue-router';
 import axios from 'axios';
@@ -135,6 +137,7 @@ const network = {
   chainId: process.env.EOS_CHAIN_ID,
 };
 
+/*
 document.addEventListener('scatterLoaded', () => {
   // Scatter will now be available from the window scope.
   // At this stage the connection to Scatter from the application is
@@ -146,6 +149,17 @@ document.addEventListener('scatterLoaded', () => {
 
   // It is good practice to take this off the window once you have
   // a reference to it.
+  window.scatter = null;
+});
+*/
+ScatterJS.scatter.connect('inspaceWebapp').then((connected) => {
+  if (!connected) {
+    // User does not have Scatter Desktop or Classic installed.
+    return;
+  }
+
+  const { scatter } = ScatterJS;
+  store.commit('setScatter', { network, scatter });
   window.scatter = null;
 });
 
