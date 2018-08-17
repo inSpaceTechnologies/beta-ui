@@ -13,13 +13,14 @@ file, You can obtain one at https://mozilla.org/MPL/2.0/.
         </span>
       </div>
       <div class="card-content">
-        {{ text }}
-        <button
-          type="button"
-          @click="hide"
-        >
-          Ok
-        </button>
+        <form @submit.prevent="hide">
+          {{ text }}
+          <button
+            type="submit"
+          >
+            Ok
+          </button>
+        </form>
       </div>
     </div>
   </modal-dialog>

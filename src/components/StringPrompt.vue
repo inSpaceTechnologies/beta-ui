@@ -13,29 +13,31 @@ file, You can obtain one at https://mozilla.org/MPL/2.0/.
         </span>
       </div>
       <div class="card-content">
-        <div class="form-element">
-          <input
-            id="val"
-            :value="value"
-            type="text"
-            name="val"
-            @input="updateValue"
-          >
-        </div>
-        <div class="form-element">
-          <button
-            type="button"
-            @click="confirm"
-          >
-            Ok
-          </button>
-          <button
-            type="button"
-            @click="cancel"
-          >
-            Cancel
-          </button>
-        </div>
+        <form @submit.prevent="confirm">
+          <div class="form-element">
+            <input
+              v-focus
+              id="val"
+              :value="value"
+              type="text"
+              name="val"
+              @input="updateValue"
+            >
+          </div>
+          <div class="form-element">
+            <button
+              type="submit"
+            >
+              Ok
+            </button>
+            <button
+              type="button"
+              @click="cancel"
+            >
+              Cancel
+            </button>
+          </div>
+        </form>
       </div>
     </div>
   </modal-dialog>
@@ -43,8 +45,12 @@ file, You can obtain one at https://mozilla.org/MPL/2.0/.
 
 <script>
 import { mapState } from 'vuex';
+import focus from '../directives/focus';
 
 export default {
+  directives: {
+    focus,
+  },
   computed: {
     ...mapState({
       value: state => state.stringPrompt.value,

@@ -13,12 +13,13 @@ file, You can obtain one at https://mozilla.org/MPL/2.0/.
         </span>
       </div>
       <div class="card-content">
-        <form>
+        <form @submit.prevent="login">
           <div class="form-element align">
             <label for="email">
               Email:
             </label>
             <input
+              v-focus
               id="email"
               v-model="data.body.email"
               type="text"
@@ -48,8 +49,7 @@ file, You can obtain one at https://mozilla.org/MPL/2.0/.
           </div>
           <div class="form-element right">
             <button
-              type="button"
-              @click="login"
+              type="submit"
             >
               Log in
             </button>
@@ -61,8 +61,12 @@ file, You can obtain one at https://mozilla.org/MPL/2.0/.
 </template>
 <script>
 import logger from '../../logger';
+import focus from '../../directives/focus';
 
 export default {
+  directives: {
+    focus,
+  },
   data() {
     return {
       data: {
