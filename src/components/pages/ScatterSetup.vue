@@ -88,9 +88,29 @@ file, You can obtain one at https://mozilla.org/MPL/2.0/.
 }
 </style>
 <script>
-import logger from '../logger';
+import logger from '../../logger';
 
 export default {
+  computed: {
+    done() {
+      if (this.$store.state.scatter.identitySet) {
+        return true;
+      }
+      return false;
+    },
+  },
+  watch: {
+    done(newValue) {
+      if (newValue) {
+        // we are done here
+        if (this.$route.query && this.$route.query.redirect) {
+          this.$router.push({ path: this.$route.query.redirect });
+        } else {
+          this.$router.push({ path: '/' });
+        }
+      }
+    },
+  },
   methods: {
     addNetwork() {
       this.$store.dispatch('suggestNetwork');

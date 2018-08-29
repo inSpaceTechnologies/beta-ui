@@ -35,9 +35,9 @@ import loginComponent from './components/pages/Login.vue';
 import signupComponent from './components/pages/Signup.vue';
 import notFoundComponent from './components/pages/404.vue';
 import adminComponent from './components/pages/Admin.vue';
+import scatterSetupComponent from './components/pages/ScatterSetup.vue';
 
 import navbarComponent from './components/Navbar.vue';
-import scatterSetupComponent from './components/ScatterSetup.vue';
 import filespaceItemComponent from './components/FilespaceItem.vue';
 import stringPromptComponent from './components/StringPrompt.vue';
 import alertComponent from './components/Alert.vue';
@@ -60,7 +60,6 @@ WebFont.load({
 
 // register components
 Vue.component('navbar', navbarComponent);
-Vue.component('scatter-setup', scatterSetupComponent);
 Vue.component('filespace-item', filespaceItemComponent);
 Vue.component('string-prompt', stringPromptComponent);
 Vue.component('alert', alertComponent);
@@ -83,6 +82,13 @@ const router = new VueRouter({
       path: '/',
       name: 'home',
       component: homeComponent,
+      meta: { scatter: true },
+    },
+    {
+      path: '/scattersetup',
+      name: 'scattersetup',
+      component: scatterSetupComponent,
+      meta: { scatter: false },
     },
     {
       path: '/admin',
@@ -124,6 +130,46 @@ const router = new VueRouter({
   ],
 });
 
+// enforce 'scatter' meta field for requiring the Scatter identity to have been set
+router.beforeEach((to, from, next) => {
+  let hasScatterMetaField = false;
+  let scatterMetaFieldValue = null;
+
+  to.matched.forEach((record) => {
+    if (Object.prototype.hasOwnProperty.call(record.meta, 'scatter')) {
+      hasScatterMetaField = true;
+      scatterMetaFieldValue = record.meta.scatter;
+    }
+  });
+
+  if (!hasScatterMetaField) {
+    next();
+    return;
+  }
+
+  const hasScatter = store.state.scatter.identitySet;
+
+  if (scatterMetaFieldValue) {
+    if (!hasScatter) {
+      next({
+        path: '/scattersetup',
+        query: { redirect: to.fullPath },
+      });
+    } else {
+      // scatter requirement met
+      next();
+    }
+  } else if (hasScatter) {
+    // has scatter, so fails requirement
+    next({
+      path: '/',
+    });
+  } else {
+    // no scatter requirement met
+    next();
+  }
+});
+
 Vue.use(VueRouter);
 Vue.router = router;
 
@@ -136,6 +182,19 @@ const network = {
   port: process.env.EOS_PORT,
   chainId: process.env.EOS_CHAIN_ID,
 };
+
+// vue-axios
+
+Vue.use(VueAxios, axios);
+Vue.axios.defaults.baseURL = process.env.API_SERVER_HOST;
+
+// vue-auth
+
+Vue.use(VueAuth, {
+  auth: VueAuthBearer,
+  http: VueAuthAxios,
+  router: VueAuthRouter,
+});
 
 /*
 document.addEventListener('scatterLoaded', () => {
@@ -152,36 +211,21 @@ document.addEventListener('scatterLoaded', () => {
   window.scatter = null;
 });
 */
+// wait for Scatter before creating the Vue app
 ScatterJS.scatter.connect('inspaceWebapp').then((connected) => {
-  if (!connected) {
-    // User does not have Scatter Desktop or Classic installed.
-    return;
+  if (connected) {
+    const { scatter } = ScatterJS;
+    store.commit('setScatter', { network, scatter });
+    window.scatter = null;
   }
 
-  const { scatter } = ScatterJS;
-  store.commit('setScatter', { network, scatter });
-  window.scatter = null;
-});
+  // Vue app
 
-// vue-axios
-
-Vue.use(VueAxios, axios);
-Vue.axios.defaults.baseURL = process.env.API_SERVER_HOST;
-
-// vue-auth
-
-Vue.use(VueAuth, {
-  auth: VueAuthBearer,
-  http: VueAuthAxios,
-  router: VueAuthRouter,
-});
-
-// Vue app
-
-// eslint-disable-next-line no-new
-new Vue({
-  el: '#app',
-  store,
-  router: Vue.router,
-  render: h => h(appComponent),
+  // eslint-disable-next-line no-new
+  new Vue({
+    el: '#app',
+    store,
+    router: Vue.router,
+    render: h => h(appComponent),
+  });
 });
