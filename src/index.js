@@ -33,6 +33,7 @@ import appComponent from './components/App.vue';
 import homeComponent from './components/pages/Home.vue';
 import loginComponent from './components/pages/Login.vue';
 import signupComponent from './components/pages/Signup.vue';
+import friendsComponent from './components/pages/Friends.vue';
 import notFoundComponent from './components/pages/404.vue';
 import adminComponent from './components/pages/Admin.vue';
 import scatterSetupComponent from './components/pages/ScatterSetup.vue';
@@ -117,6 +118,12 @@ const router = new VueRouter({
       name: 'signup',
       component: signupComponent,
       meta: { auth: false },
+    },
+    {
+      path: '/friends',
+      name: 'friends',
+      component: friendsComponent,
+      meta: { scatter: true },
     },
     {
       path: '/404',

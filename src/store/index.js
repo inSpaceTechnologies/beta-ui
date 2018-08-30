@@ -8,6 +8,7 @@ import Vue from 'vue';
 import Vuex from 'vuex';
 import scatter from './modules/scatter';
 import filespace from './modules/filespace';
+import friends from './modules/friends';
 import stringPrompt from './modules/string-prompt';
 
 import logger from '../logger';
@@ -18,12 +19,13 @@ const store = new Vuex.Store({
   modules: {
     scatter,
     filespace,
+    friends,
     stringPrompt,
   },
 });
 
 store.watch(state => state.scatter.identitySet, () => {
-  store.dispatch('getFilespace').then(() => {
+  store.dispatch('getFilespace').then(() => store.dispatch('getFriends')).then(() => {
   }, (err) => {
     logger.error(err.message);
   });

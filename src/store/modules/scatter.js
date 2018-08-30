@@ -17,7 +17,7 @@ const state = {
 };
 
 const getters = {
-  getIdentity: state => state.identity,
+  accountName: state => state.scatter.identity.accounts.find(acc => acc.blockchain === 'eos').name,
 };
 
 const mutations = {

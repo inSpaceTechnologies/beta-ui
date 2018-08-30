@@ -101,19 +101,15 @@ const storeMutations = {
   },
 };
 
-function getAccountName(rootState) {
-  return rootState.scatter.scatter.identity.accounts.find(acc => acc.blockchain === 'eos').name;
-}
-
 const storeActions = {
-  addFolder({ rootState }, { id, name, parent }) {
+  addFolder({ rootState, rootGetters }, { id, name, parent }) {
     let parentId = 0;
     if (parent) {
       parentId = parent.id;
     }
     return new Promise((resolve, reject) => {
       rootState.scatter.eos.contract('filespace').then((filespace) => {
-        const accountName = getAccountName(rootState);
+        const { accountName } = rootGetters;
         filespace.addfolder(accountName, id, name, parentId, { authorization: accountName }).then(() => {
           const newFolder = {
             id,
@@ -132,7 +128,7 @@ const storeActions = {
       });
     });
   },
-  addFile({ rootState }, {
+  addFile({ rootState, rootGetters }, {
     id,
     name,
     date,
@@ -141,7 +137,7 @@ const storeActions = {
     parent,
   }) {
     return new Promise((resolve, reject) => {
-      const accountName = getAccountName(rootState);
+      const { accountName } = rootGetters;
       const data = {};
       rootState.scatter.eos.contract('filespace')
         .then((filespace) => {
@@ -171,13 +167,13 @@ const storeActions = {
         });
     });
   },
-  deleteFolder({ rootState }, {
+  deleteFolder({ rootState, rootGetters }, {
     object,
     parent,
   }) {
     return new Promise((resolve, reject) => {
       rootState.scatter.eos.contract('filespace').then((filespace) => {
-        const accountName = getAccountName(rootState);
+        const { accountName } = rootGetters;
         filespace.deletefolder(accountName, object.id, { authorization: accountName }).then(() => {
           if (parent) {
             const index = parent.childFolders.indexOf(object);
@@ -192,13 +188,13 @@ const storeActions = {
       });
     });
   },
-  deleteFile({ rootState }, {
+  deleteFile({ rootState, rootGetters }, {
     object,
     parent,
   }) {
     return new Promise((resolve, reject) => {
       rootState.scatter.eos.contract('filespace').then((filespace) => {
-        const accountName = getAccountName(rootState);
+        const { accountName } = rootGetters;
         filespace.deletefile(accountName, object.id, { authorization: accountName }).then(() => {
           if (parent) {
             const index = parent.childFiles.indexOf(object);
@@ -213,9 +209,14 @@ const storeActions = {
       });
     });
   },
-  getFilespace({ dispatch, commit, rootState }) {
+  getFilespace({
+    dispatch,
+    commit,
+    rootState,
+    rootGetters,
+  }) {
     return new Promise((resolve) => {
-      const accountName = getAccountName(rootState);
+      const { accountName } = rootGetters;
       getFilespaceData(rootState.scatter.eos, accountName).then((rootFolder) => {
         if (rootFolder) {
           commit('setRoot', rootFolder);
