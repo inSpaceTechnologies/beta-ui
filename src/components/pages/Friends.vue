@@ -6,6 +6,12 @@ file, You can obtain one at https://mozilla.org/MPL/2.0/.
 -->
 <template>
   <div>
+    <button
+      type="button"
+      @click="sendFriendRequest"
+    >
+      Send a new friend request...
+    </button>
     <h2>Sent friend requests</h2>
     <ul>
       <li
@@ -36,9 +42,22 @@ file, You can obtain one at https://mozilla.org/MPL/2.0/.
   </div>
 </template>
 <script>
+import logger from '../../logger';
+
 export default {
   methods: {
     sendFriendRequest() {
+      this.$store.dispatch('openStringPrompt', {
+        text: 'Enter folder name',
+        value: '',
+      }).then((value) => {
+        if (value) {
+          this.$store.dispatch('addFriendRequest', value).then(() => this.$store.dispatch('getFriends')).then(() => {
+          }, (err) => {
+            logger.error(err);
+          });
+        }
+      });
     },
   },
 };

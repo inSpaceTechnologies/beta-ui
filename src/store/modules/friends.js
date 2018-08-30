@@ -91,6 +91,18 @@ const storeActions = {
       });
     });
   },
+  addFriendRequest({ rootState, rootGetters }, requestAccount) {
+    return new Promise((resolve, reject) => {
+      rootState.scatter.eos.contract('friends').then((friendsContract) => {
+        const { accountName } = rootGetters;
+        friendsContract.addrequest(accountName, requestAccount, { authorization: accountName }).then(() => {
+          resolve();
+        });
+      }, (err) => {
+        reject(err);
+      });
+    });
+  },
 };
 
 const storeGetters = {};
