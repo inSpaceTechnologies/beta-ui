@@ -8,7 +8,7 @@ file, You can obtain one at https://mozilla.org/MPL/2.0/.
   <div>
     <button
       type="button"
-      @click="sendFriendRequest"
+      @click="sendFriendRequest()"
     >
       Send a new friend request...
     </button>
@@ -28,6 +28,13 @@ file, You can obtain one at https://mozilla.org/MPL/2.0/.
         :key="index + '-received'"
       >
         {{ request }}
+        <!-- Accept a friend request by sending a friend request to the requester -->
+        <button
+          type="button"
+          @click="sendFriendRequest(request)"
+        >
+          Accept
+        </button>
       </li>
     </ul>
     <h2>Friends</h2>
@@ -46,18 +53,25 @@ import logger from '../../logger';
 
 export default {
   methods: {
-    sendFriendRequest() {
-      this.$store.dispatch('openStringPrompt', {
-        text: 'Enter folder name',
-        value: '',
-      }).then((value) => {
-        if (value) {
-          this.$store.dispatch('addFriendRequest', value).then(() => this.$store.dispatch('getFriends')).then(() => {
-          }, (err) => {
-            logger.error(err);
-          });
-        }
-      });
+    sendFriendRequest(r) {
+      const send = (recipient) => {
+        this.$store.dispatch('addFriendRequest', recipient).then(() => this.$store.dispatch('getFriends')).then(() => {
+        }, (err) => {
+          logger.error(err);
+        });
+      };
+      if (r) {
+        send(r);
+      } else {
+        this.$store.dispatch('openStringPrompt', {
+          text: 'Enter folder name',
+          value: '',
+        }).then((value) => {
+          if (value) {
+            send(value);
+          }
+        });
+      }
     },
   },
 };
