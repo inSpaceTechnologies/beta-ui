@@ -5,12 +5,12 @@ License, v. 2.0. If a copy of the MPL was not distributed with this
 file, You can obtain one at https://mozilla.org/MPL/2.0/.
 -->
 <template>
-  <div id="home-wrapper">
-    <filespace/>
+  <div id="filespace-page-wrapper">
+    <filespace :account-name="$route.params.accountname"/>
   </div>
 </template>
 <style scoped>
-#home-wrapper {
+#filespace-page-wrapper {
   display: flex;
   flex-grow: 1;
 }

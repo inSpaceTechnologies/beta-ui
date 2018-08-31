@@ -231,6 +231,14 @@ const storeActions = {
       });
     });
   },
+  // gets another user's filespace
+  getOtherFilespace({ rootState }, { accountName }) {
+    return new Promise((resolve) => {
+      getFilespaceData(rootState.scatter.eos, accountName).then((rootFolder) => {
+        resolve(rootFolder);
+      });
+    });
+  },
 };
 
 const storeGetters = {

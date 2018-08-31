@@ -43,7 +43,13 @@ file, You can obtain one at https://mozilla.org/MPL/2.0/.
         v-for="(friend, index) in $store.state.friends.friends"
         :key="index + '-friend'"
       >
-        {{ friend }}
+        <router-link
+          :to="{name: 'filespace', params: { accountname: friend }}"
+          exact
+          class="router-link"
+        >
+          {{ friend }}
+        </router-link>
       </li>
     </ul>
   </div>
@@ -64,7 +70,7 @@ export default {
         send(r);
       } else {
         this.$store.dispatch('openStringPrompt', {
-          text: 'Enter folder name',
+          text: 'Enter account name',
           value: '',
         }).then((value) => {
           if (value) {

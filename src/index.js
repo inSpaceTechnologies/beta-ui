@@ -37,12 +37,14 @@ import friendsComponent from './components/pages/Friends.vue';
 import notFoundComponent from './components/pages/404.vue';
 import adminComponent from './components/pages/Admin.vue';
 import scatterSetupComponent from './components/pages/ScatterSetup.vue';
+import filespacePageComponent from './components/pages/Filespace.vue';
 
 import navbarComponent from './components/Navbar.vue';
 import filespaceItemComponent from './components/FilespaceItem.vue';
 import stringPromptComponent from './components/StringPrompt.vue';
 import alertComponent from './components/Alert.vue';
 import modalDialogComponent from './components/ModalDialog.vue';
+import filespaceComponent from './components/Filespace.vue';
 
 import store from './store';
 
@@ -65,6 +67,7 @@ Vue.component('filespace-item', filespaceItemComponent);
 Vue.component('string-prompt', stringPromptComponent);
 Vue.component('alert', alertComponent);
 Vue.component('modal-dialog', modalDialogComponent);
+Vue.component('filespace', filespaceComponent);
 
 // font awesome
 library.add(faHome);
@@ -123,6 +126,12 @@ const router = new VueRouter({
       path: '/friends',
       name: 'friends',
       component: friendsComponent,
+      meta: { scatter: true },
+    },
+    {
+      path: '/filespace/:accountname',
+      name: 'filespace',
+      component: filespacePageComponent,
       meta: { scatter: true },
     },
     {
