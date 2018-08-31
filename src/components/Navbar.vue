@@ -24,6 +24,14 @@ file, You can obtain one at https://mozilla.org/MPL/2.0/.
       <font-awesome-icon icon="home" />
       Home
     </router-link>
+    <router-link
+      :to="{name: 'friends'}"
+      exact
+      class="router-link"
+    >
+      <font-awesome-icon icon="user-friends" />
+      Friends
+    </router-link>
     <template v-if="!$auth.check()">
       <router-link
         :to="{name: 'login'}"

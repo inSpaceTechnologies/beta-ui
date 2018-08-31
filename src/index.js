@@ -24,7 +24,7 @@ import 'noty/lib/themes/relax.css';
 
 // font awesome
 import { library } from '@fortawesome/fontawesome-svg-core';
-import { faHome, faSignInAlt, faSignOutAlt, faUserPlus } from '@fortawesome/free-solid-svg-icons';
+import { faHome, faSignInAlt, faSignOutAlt, faUserPlus, faUserFriends } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
 
 // components
@@ -74,6 +74,7 @@ library.add(faHome);
 library.add(faSignInAlt);
 library.add(faSignOutAlt);
 library.add(faUserPlus);
+library.add(faUserFriends);
 Vue.component('font-awesome-icon', FontAwesomeIcon);
 Vue.config.productionTip = false;
 
