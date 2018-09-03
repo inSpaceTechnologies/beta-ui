@@ -15,7 +15,7 @@ file, You can obtain one at https://mozilla.org/MPL/2.0/.
         class="central filespace"
       >
         <filespace-item
-          :object="$store.state.filespace.root"
+          :object="root"
           :is-folder="true"
         />
       </ul>
