@@ -7,13 +7,7 @@ file, You can obtain one at https://mozilla.org/MPL/2.0/.
 <template>
   <div id="root-wrapper">
     <div
-      v-if="!$store.state.scatter.scatter || !$store.state.scatter.identitySet"
-      class="central"
-    >
-      <scatter-setup/>
-    </div>
-    <div
-      v-else-if="root"
+      v-if="root"
       id="filespace-background"
       class="semitransparent"
     >
