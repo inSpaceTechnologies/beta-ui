@@ -10,6 +10,7 @@ import scatter from './modules/scatter';
 import filespace from './modules/filespace';
 import friends from './modules/friends';
 import stringPrompt from './modules/string-prompt';
+import dropdown from './modules/dropdown';
 
 import logger from '../logger';
 
@@ -21,6 +22,7 @@ const store = new Vuex.Store({
     filespace,
     friends,
     stringPrompt,
+    dropdown,
   },
 });
 

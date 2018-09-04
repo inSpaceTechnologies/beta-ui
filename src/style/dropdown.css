@@ -1,0 +1,22 @@
+/*
+Copyright (c) 2018 inSpace Technologies Ltd
+This Source Code Form is subject to the terms of the Mozilla Public
+License, v. 2.0. If a copy of the MPL was not distributed with this
+file, You can obtain one at https://mozilla.org/MPL/2.0/.
+*/
+.dropdown-menu {
+  position: absolute;
+  min-width: 10rem;
+  padding: .5rem;
+  font-size: 1rem;
+  color: #292b2c;
+  background-color: #fff;
+  border: 1px solid rgba(0,0,0,0.15);
+  border-radius: .25rem;
+  z-index: 2;
+  user-select: none;
+}
+
+.dropdown-menu li {
+  list-style: none;
+}

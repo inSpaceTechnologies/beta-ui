@@ -24,7 +24,7 @@ import 'noty/lib/themes/relax.css';
 
 // font awesome
 import { library } from '@fortawesome/fontawesome-svg-core';
-import { faHome, faSignInAlt, faSignOutAlt, faUserPlus, faUserFriends } from '@fortawesome/free-solid-svg-icons';
+import { faHome, faSignInAlt, faSignOutAlt, faUserPlus, faUserFriends, faCaretDown } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
 
 // components
@@ -45,6 +45,8 @@ import stringPromptComponent from './components/StringPrompt.vue';
 import alertComponent from './components/Alert.vue';
 import modalDialogComponent from './components/ModalDialog.vue';
 import filespaceComponent from './components/Filespace.vue';
+import dropdownButtonComponent from './components/DropdownButton.vue';
+import dropdownMenuComponent from './components/DropdownMenu.vue';
 
 import store from './store';
 
@@ -53,6 +55,7 @@ import './style/theme.css';
 import './style/card.css';
 import './style/form.css';
 import './style/modal-dialog.css';
+import './style/dropdown.css';
 
 // load font synchronously so it is available immediately
 WebFont.load({
@@ -68,6 +71,8 @@ Vue.component('string-prompt', stringPromptComponent);
 Vue.component('alert', alertComponent);
 Vue.component('modal-dialog', modalDialogComponent);
 Vue.component('filespace', filespaceComponent);
+Vue.component('dropdown-button', dropdownButtonComponent);
+Vue.component('dropdown-menu', dropdownMenuComponent);
 
 // font awesome
 library.add(faHome);
@@ -75,6 +80,7 @@ library.add(faSignInAlt);
 library.add(faSignOutAlt);
 library.add(faUserPlus);
 library.add(faUserFriends);
+library.add(faCaretDown);
 Vue.component('font-awesome-icon', FontAwesomeIcon);
 Vue.config.productionTip = false;
 

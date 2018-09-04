@@ -9,7 +9,7 @@ file, You can obtain one at https://mozilla.org/MPL/2.0/.
     <router-link
       :to="{ name: 'home' }"
       exact
-      class="router-link logo-link"
+      class="navbar-button logo-link"
     >
       <img
         class="logo-img"
@@ -19,7 +19,7 @@ file, You can obtain one at https://mozilla.org/MPL/2.0/.
     <router-link
       :to="{name: 'home'}"
       exact
-      class="router-link"
+      class="navbar-button"
     >
       <font-awesome-icon icon="home" />
       Home
@@ -27,16 +27,51 @@ file, You can obtain one at https://mozilla.org/MPL/2.0/.
     <router-link
       :to="{name: 'friends'}"
       exact
-      class="router-link"
+      class="navbar-button"
     >
       <font-awesome-icon icon="user-friends" />
       Friends
     </router-link>
+    <div>
+      <dropdown-button
+        identifier="friend-requests"
+        class="navbar-button"
+      >
+        Friend requests <font-awesome-icon icon="caret-down"/>
+      </dropdown-button>
+      <dropdown-menu
+        class="dropdown-menu"
+        identifier="friend-requests"
+      >
+        <ul>
+          <li v-if="!this.$store.state.scatter.identitySet">
+            Please <router-link :to="{name: 'scattersetup'}">set up Scatter</router-link>.
+          </li>
+          <li v-else-if="$store.state.friends.receivedRequests.length == 0">
+            No friend requests.
+          </li>
+          <li
+            v-for="(request, index) in $store.state.friends.receivedRequests"
+            v-else
+            :key="index + '-received'"
+          >
+            {{ request }}
+            <!-- Accept a friend request by sending a friend request to the requester -->
+            <button
+              type="button"
+              @click="sendFriendRequest(request)"
+            >
+              Accept
+            </button>
+          </li>
+        </ul>
+      </dropdown-menu>
+    </div>
     <template v-if="!$auth.check()">
       <router-link
         :to="{name: 'login'}"
         exact
-        class="router-link"
+        class="navbar-button"
       >
         <font-awesome-icon icon="sign-in-alt" />
         Log in
@@ -44,7 +79,7 @@ file, You can obtain one at https://mozilla.org/MPL/2.0/.
       <router-link
         :to="{name: 'signup'}"
         exact
-        class="router-link"
+        class="navbar-button"
       >
         <font-awesome-icon icon="user-plus" />
         Sign up
@@ -53,7 +88,7 @@ file, You can obtain one at https://mozilla.org/MPL/2.0/.
     <template v-if="$auth.check()">
       <a
         href=""
-        class="router-link"
+        class="navbar-button"
         @click="logout()"
       >
         <font-awesome-icon icon="sign-out-alt" />
@@ -71,15 +106,17 @@ file, You can obtain one at https://mozilla.org/MPL/2.0/.
   align-items: center;
   padding: 0 0.5rem;
 }
-.router-link {
+.navbar-button {
     color: rgba(255,255,255,0.5);
     padding: 0.5rem;
     text-decoration: none;
+    cursor: pointer;
+    user-select: none;
 }
-.router-link:hover:not(.router-link-exact-active) {
+.navbar-button:hover:not(.router-link-exact-active) {
   color: rgba(255,255,255,0.75);
 }
-.router-link-exact-active {
+.navbar > .router-link-exact-active {
     color: rgba(255,255,255,1.0);
 }
 .logo-link {
@@ -91,11 +128,19 @@ file, You can obtain one at https://mozilla.org/MPL/2.0/.
 }
 </style>
 <script>
+import logger from '../logger';
+
 export default {
   methods: {
     logout() {
       this.$auth.logout({
         makeRequest: false, // just delete token
+      });
+    },
+    sendFriendRequest(recipient) {
+      this.$store.dispatch('addFriendRequest', recipient).then(() => this.$store.dispatch('getFriends')).then(() => {
+      }, (err) => {
+        logger.error(err);
       });
     },
   },
