@@ -38,6 +38,7 @@ import notFoundComponent from './components/pages/404.vue';
 import adminComponent from './components/pages/Admin.vue';
 import scatterSetupComponent from './components/pages/ScatterSetup.vue';
 import filespacePageComponent from './components/pages/Filespace.vue';
+import purchasePageComponent from './components/pages/Purchase.vue';
 
 import navbarComponent from './components/Navbar.vue';
 import filespaceItemComponent from './components/FilespaceItem.vue';
@@ -139,6 +140,12 @@ const router = new VueRouter({
       path: '/filespace/:accountname',
       name: 'filespace',
       component: filespacePageComponent,
+      meta: { scatter: true },
+    },
+    {
+      path: '/purchase',
+      name: 'purchase',
+      component: purchasePageComponent,
       meta: { scatter: true },
     },
     {
