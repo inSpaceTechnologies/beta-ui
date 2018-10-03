@@ -9,6 +9,7 @@ import Vuex from 'vuex';
 import scatter from './modules/scatter';
 import filespace from './modules/filespace';
 import friends from './modules/friends';
+import iscoin from './modules/iscoin';
 import stringPrompt from './modules/string-prompt';
 import dropdown from './modules/dropdown';
 
@@ -21,16 +22,20 @@ const store = new Vuex.Store({
     scatter,
     filespace,
     friends,
+    iscoin,
     stringPrompt,
     dropdown,
   },
 });
 
 store.watch(state => state.scatter.identitySet, () => {
-  store.dispatch('getFilespace').then(() => store.dispatch('getFriends')).then(() => {
-  }, (err) => {
-    logger.error(err.message);
-  });
+  store.dispatch('getFilespace')
+    .then(() => store.dispatch('getFriends'))
+    .then(() => store.dispatch('getIscoinData'))
+    .then(() => {
+    }, (err) => {
+      logger.error(err.message);
+    });
 });
 
 export default store;

@@ -24,7 +24,7 @@ import 'noty/lib/themes/relax.css';
 
 // font awesome
 import { library } from '@fortawesome/fontawesome-svg-core';
-import { faHome, faSignInAlt, faSignOutAlt, faUserPlus, faUserFriends, faCaretDown } from '@fortawesome/free-solid-svg-icons';
+import { faHome, faSignInAlt, faSignOutAlt, faUserPlus, faUserFriends, faCaretDown, faCoins } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
 
 // components
@@ -39,6 +39,7 @@ import adminComponent from './components/pages/Admin.vue';
 import scatterSetupComponent from './components/pages/ScatterSetup.vue';
 import filespacePageComponent from './components/pages/Filespace.vue';
 import purchasePageComponent from './components/pages/Purchase.vue';
+import iscoinPageComponent from './components/pages/Iscoin.vue';
 
 import navbarComponent from './components/Navbar.vue';
 import filespaceItemComponent from './components/FilespaceItem.vue';
@@ -82,6 +83,7 @@ library.add(faSignOutAlt);
 library.add(faUserPlus);
 library.add(faUserFriends);
 library.add(faCaretDown);
+library.add(faCoins);
 Vue.component('font-awesome-icon', FontAwesomeIcon);
 Vue.config.productionTip = false;
 
@@ -140,6 +142,12 @@ const router = new VueRouter({
       path: '/filespace/:accountname',
       name: 'filespace',
       component: filespacePageComponent,
+      meta: { scatter: true },
+    },
+    {
+      path: '/iscoin',
+      name: 'iscoin',
+      component: iscoinPageComponent,
       meta: { scatter: true },
     },
     {

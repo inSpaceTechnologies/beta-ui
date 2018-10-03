@@ -25,6 +25,15 @@ file, You can obtain one at https://mozilla.org/MPL/2.0/.
       Home
     </router-link>
     <router-link
+      v-if="this.$store.state.iscoin.balance !== null"
+      :to="{name: 'iscoin'}"
+      exact
+      class="navbar-button"
+    >
+      <font-awesome-icon icon="coins" />
+      {{ this.$store.state.iscoin.balance + ' ' + currencySymbol }}
+    </router-link>
+    <router-link
       :to="{name: 'friends'}"
       exact
       class="navbar-button"
@@ -131,6 +140,11 @@ file, You can obtain one at https://mozilla.org/MPL/2.0/.
 import logger from '../logger';
 
 export default {
+  data() {
+    return {
+      currencySymbol: process.env.CURRENCY_SYMBOL, // can't have this in {{ }} because webpack deals with setting it
+    };
+  },
   methods: {
     logout() {
       this.$auth.logout({
