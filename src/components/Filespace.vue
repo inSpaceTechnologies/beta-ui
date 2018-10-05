@@ -17,6 +17,7 @@ file, You can obtain one at https://mozilla.org/MPL/2.0/.
         <filespace-item
           :object="root"
           :is-folder="true"
+          :account-name="accountName"
         />
       </ul>
     </div>

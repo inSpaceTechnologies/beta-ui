@@ -4,12 +4,14 @@ This Source Code Form is subject to the terms of the Mozilla Public
 License, v. 2.0. If a copy of the MPL was not distributed with this
 file, You can obtain one at https://mozilla.org/MPL/2.0/.
 */
-function getTable(eos, accountName, tableName) {
+const CONTRACT_ACCOUNT = 'filespace';
+
+function getTable(eos, scope, tableName) {
   return new Promise((resolve) => {
     eos.getTableRows({
       json: true,
-      scope: accountName,
-      code: 'filespace',
+      scope,
+      code: CONTRACT_ACCOUNT,
       table: tableName,
       limit: 500,
     }).then((result) => {
@@ -18,77 +20,82 @@ function getTable(eos, accountName, tableName) {
   });
 }
 
-function getTables(eos, accountName) {
-  return new Promise((resolve) => {
-    const data = {};
-    getTable(eos, accountName, 'folders')
-      .then((rawFolders) => {
-        data.rawFolders = rawFolders;
-        return getTable(eos, accountName, 'files');
-      })
-      .then((rawFiles) => {
-        data.rawFiles = rawFiles;
-        return getTable(eos, accountName, 'versions');
-      })
-      .then((rawVersions) => {
-        data.rawVersions = rawVersions;
-        resolve(data);
-      });
-  });
+async function getTables(eos, accountName) {
+  const data = {};
+  data.rawFolders = await getTable(eos, accountName, 'folders');
+  data.rawFiles = await getTable(eos, accountName, 'files');
+  data.rawVersions = await getTable(eos, accountName, 'versions');
+  data.rawLikes = await getTable(eos, CONTRACT_ACCOUNT, 'likes');
+  return data;
 }
 
-function getFilespaceData(eos, accountName) {
-  return new Promise((resolve) => {
-    getTables(eos, accountName, 'folders').then(({ rawVersions, rawFiles, rawFolders }) => {
-      // index the data
-      const indexedVersions = {};
-      const indexedFiles = {};
-      const indexedFolders = {};
+async function getFilespaceData(eos, accountName) {
+  const {
+    rawVersions,
+    rawFiles,
+    rawFolders,
+    rawLikes,
+  } = await getTables(eos, accountName);
 
-      rawVersions.forEach((version) => {
-        indexedVersions[version.id] = version;
-      });
-      rawFiles.forEach((file) => {
-        indexedFiles[file.id] = file;
-      });
-      rawFolders.forEach((folder) => {
-        indexedFolders[folder.id] = folder;
-        folder.childFolders = [];
-        folder.childFiles = [];
-      });
+  // index the data
+  const indexedVersions = {};
+  const indexedFiles = {};
+  const indexedFolders = {};
 
-      // collapse the data
-      let rootFolder = null;
-
-      rawVersions.forEach((version) => {
-        const file = indexedFiles[version.file];
-        if (!file.versions) {
-          file.versions = [];
-        }
-        file.versions.push(version);
-      });
-
-      rawFiles.forEach((file) => {
-        if (file.current_version) {
-          file.currentVersion = indexedVersions[file.current_version];
-        }
-        const parentFolder = indexedFolders[file.parent_folder];
-        parentFolder.childFiles.push(file);
-      });
-
-      rawFolders.forEach((folder) => {
-        if (folder.parent_folder) {
-          const parentFolder = indexedFolders[folder.parent_folder];
-          parentFolder.childFolders.push(folder);
-        } else {
-          // no parent
-          rootFolder = folder;
-        }
-      });
-
-      resolve(rootFolder);
-    });
+  rawVersions.forEach((version) => {
+    version.likes = [];
+    indexedVersions[version.id] = version;
   });
+  rawFiles.forEach((file) => {
+    indexedFiles[file.id] = file;
+  });
+  rawFolders.forEach((folder) => {
+    indexedFolders[folder.id] = folder;
+    folder.childFolders = [];
+    folder.childFiles = [];
+  });
+
+  // collapse the data
+  let rootFolder = null;
+
+  rawVersions.forEach((version) => {
+    const file = indexedFiles[version.file];
+    if (!file.versions) {
+      file.versions = [];
+    }
+    file.versions.push(version);
+  });
+
+  rawFiles.forEach((file) => {
+    if (file.current_version) {
+      file.currentVersion = indexedVersions[file.current_version];
+    }
+    const parentFolder = indexedFolders[file.parent_folder];
+    parentFolder.childFiles.push(file);
+  });
+
+  rawFolders.forEach((folder) => {
+    if (folder.parent_folder) {
+      const parentFolder = indexedFolders[folder.parent_folder];
+      parentFolder.childFolders.push(folder);
+    } else {
+      // no parent
+      rootFolder = folder;
+    }
+  });
+
+  rawLikes.forEach((like) => {
+    if (like.liked === accountName) {
+      const version = indexedVersions[like.version];
+      if (!version) {
+        // maybe it has been deleted
+        return;
+      }
+      version.likes.push(like.liker);
+    }
+  });
+
+  return (rootFolder);
 }
 
 const storeState = {
@@ -108,7 +115,7 @@ const storeActions = {
       parentId = parent.id;
     }
     return new Promise((resolve, reject) => {
-      rootState.scatter.eos.contract('filespace').then((filespace) => {
+      rootState.scatter.eos.contract(CONTRACT_ACCOUNT).then((filespace) => {
         const { accountName } = rootGetters;
         filespace.addfolder(accountName, id, name, parentId, { authorization: accountName }).then(() => {
           const newFolder = {
@@ -139,7 +146,7 @@ const storeActions = {
     return new Promise((resolve, reject) => {
       const { accountName } = rootGetters;
       const data = {};
-      rootState.scatter.eos.contract('filespace')
+      rootState.scatter.eos.contract(CONTRACT_ACCOUNT)
         .then((filespace) => {
           data.filespace = filespace;
           return filespace.addfile(accountName, id, name, parent.id, 0, { authorization: accountName });
@@ -152,6 +159,7 @@ const storeActions = {
             date,
             ipfs_hash: ipfsHash,
             sha256,
+            likes: [],
           };
           const newFile = {
             name,
@@ -172,7 +180,7 @@ const storeActions = {
     parent,
   }) {
     return new Promise((resolve, reject) => {
-      rootState.scatter.eos.contract('filespace').then((filespace) => {
+      rootState.scatter.eos.contract(CONTRACT_ACCOUNT).then((filespace) => {
         const { accountName } = rootGetters;
         filespace.deletefolder(accountName, object.id, { authorization: accountName }).then(() => {
           if (parent) {
@@ -193,13 +201,31 @@ const storeActions = {
     parent,
   }) {
     return new Promise((resolve, reject) => {
-      rootState.scatter.eos.contract('filespace').then((filespace) => {
+      rootState.scatter.eos.contract(CONTRACT_ACCOUNT).then((filespace) => {
         const { accountName } = rootGetters;
         filespace.deletefile(accountName, object.id, { authorization: accountName }).then(() => {
           if (parent) {
             const index = parent.childFiles.indexOf(object);
             parent.childFiles.splice(index, 1);
           }
+          resolve();
+        }, (err) => {
+          reject(err);
+        });
+      }, (err) => {
+        reject(err);
+      });
+    });
+  },
+  likeVersion({ rootState, rootGetters }, {
+    version,
+    accountName,
+  }) {
+    return new Promise((resolve, reject) => {
+      rootState.scatter.eos.contract(CONTRACT_ACCOUNT).then((filespace) => {
+        const myAccountName = rootGetters.accountName;
+        filespace.addlike(myAccountName, Date.now(), accountName || myAccountName, version.id, { authorization: myAccountName }).then(() => {
+          version.likes.push(myAccountName);
           resolve();
         }, (err) => {
           reject(err);

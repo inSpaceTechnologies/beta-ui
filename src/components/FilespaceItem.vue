@@ -37,6 +37,18 @@ file, You can obtain one at https://mozilla.org/MPL/2.0/.
       >
         [Delete]
       </span>
+      <span
+        v-if="!isFolder"
+        class="filespace-button primary"
+        @click="likeFile"
+      >
+        [Like]
+      </span>
+      <span
+        v-if="!isFolder"
+      >
+        {{ object.currentVersion.likes.length }} likes
+      </span>
     </div>
     <ul
       v-show="open"
@@ -48,6 +60,7 @@ file, You can obtain one at https://mozilla.org/MPL/2.0/.
         :object="folder"
         :parent="object"
         :is-folder="true"
+        :account-name="accountName"
       />
       <filespace-item
         v-for="(file, index) in object.childFiles"
@@ -55,6 +68,7 @@ file, You can obtain one at https://mozilla.org/MPL/2.0/.
         :object="file"
         :parent="object"
         :is-folder="false"
+        :account-name="accountName"
       />
       <li v-if="isFolder">
         <span
@@ -126,6 +140,12 @@ export default {
     isFolder: {
       type: Boolean,
       required: true,
+    },
+    // null means it's the user's own account
+    accountName: {
+      type: String,
+      required: false,
+      default: null,
     },
   },
   data() {
@@ -216,6 +236,15 @@ export default {
         } else {
           logger.log('Did not unpin');
         }
+      }, (err) => {
+        notifyError(err);
+      });
+    },
+    likeFile() {
+      this.$store.dispatch('likeVersion', {
+        version: this.object.currentVersion,
+        accountName: this.accountName,
+      }).then(() => {
       }, (err) => {
         notifyError(err);
       });
