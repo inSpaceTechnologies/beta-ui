@@ -4,7 +4,8 @@ This Source Code Form is subject to the terms of the Mozilla Public
 License, v. 2.0. If a copy of the MPL was not distributed with this
 file, You can obtain one at https://mozilla.org/MPL/2.0/.
 */
-import ScatterJS from 'scatter-js/dist/scatter.esm';
+import ScatterJS from 'scatterjs-core';
+import ScatterEOS from 'scatterjs-plugin-eosjs2';
 
 import Vue from 'vue';
 import VueRouter from 'vue-router';
@@ -24,7 +25,9 @@ import 'noty/lib/themes/relax.css';
 
 // font awesome
 import { library } from '@fortawesome/fontawesome-svg-core';
-import { faHome, faSignInAlt, faSignOutAlt, faUserPlus, faUserFriends, faCaretDown, faCoins } from '@fortawesome/free-solid-svg-icons';
+import {
+  faHome, faSignInAlt, faSignOutAlt, faUserPlus, faUserFriends, faCaretDown, faCoins,
+} from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
 
 // components
@@ -234,27 +237,15 @@ Vue.use(VueAuth, {
   router: VueAuthRouter,
 });
 
-/*
-document.addEventListener('scatterLoaded', () => {
-  // Scatter will now be available from the window scope.
-  // At this stage the connection to Scatter from the application is
-  // already encrypted.
-  // const scatter = window.scatter;
-  const { scatter } = window;
+// Don't forget to tell ScatterJS which plugins you are using.
+ScatterJS.plugins(new ScatterEOS());
 
-  store.commit('setScatter', { network, scatter });
-
-  // It is good practice to take this off the window once you have
-  // a reference to it.
-  window.scatter = null;
-});
-*/
 // wait for Scatter before creating the Vue app
 ScatterJS.scatter.connect('inspaceWebapp').then((connected) => {
   if (connected) {
     const { scatter } = ScatterJS;
     store.commit('setScatter', { network, scatter });
-    window.scatter = null;
+    window.ScatterJS = null;
   }
 
   // Vue app

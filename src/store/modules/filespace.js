@@ -6,9 +6,9 @@ file, You can obtain one at https://mozilla.org/MPL/2.0/.
 */
 const CONTRACT_ACCOUNT = 'filespace';
 
-function getTable(eos, scope, tableName) {
+function getTable(rpc, scope, tableName) {
   return new Promise((resolve) => {
-    eos.getTableRows({
+    rpc.get_table_rows({
       json: true,
       scope,
       code: CONTRACT_ACCOUNT,
@@ -20,12 +20,12 @@ function getTable(eos, scope, tableName) {
   });
 }
 
-async function getTables(eos, accountName) {
+async function getTables(rpc, accountName) {
   const data = {};
-  data.rawFolders = await getTable(eos, accountName, 'folders');
-  data.rawFiles = await getTable(eos, accountName, 'files');
-  data.rawVersions = await getTable(eos, accountName, 'versions');
-  data.rawLikes = await getTable(eos, CONTRACT_ACCOUNT, 'likes');
+  data.rawFolders = await getTable(rpc, accountName, 'folders');
+  data.rawFiles = await getTable(rpc, accountName, 'files');
+  data.rawVersions = await getTable(rpc, accountName, 'versions');
+  data.rawLikes = await getTable(rpc, CONTRACT_ACCOUNT, 'likes');
   return data;
 }
 
@@ -109,33 +109,43 @@ const storeMutations = {
 };
 
 const storeActions = {
-  addFolder({ rootState, rootGetters }, { id, name, parent }) {
+  async addFolder({ rootState, rootGetters }, { id, name, parent }) {
     let parentId = 0;
     if (parent) {
       parentId = parent.id;
     }
-    return new Promise((resolve, reject) => {
-      rootState.scatter.eos.contract(CONTRACT_ACCOUNT).then((filespace) => {
-        const { accountName } = rootGetters;
-        filespace.addfolder(accountName, id, name, parentId, { authorization: accountName }).then(() => {
-          const newFolder = {
-            id,
-            name,
-            childFiles: [],
-            childFolders: [],
-            parentId,
-          };
-          if (parent) {
-            parent.childFolders.push(newFolder);
-          }
-          resolve(newFolder);
-        });
-      }, (err) => {
-        reject(err);
-      });
+    const { accountName } = rootGetters;
+    await rootState.scatter.api.transact({
+      actions: [{
+        account: CONTRACT_ACCOUNT,
+        name: 'addfolder',
+        authorization: [{
+          actor: accountName,
+          permission: 'active',
+        }],
+        data: {
+          user: accountName,
+          id,
+          name,
+          parent_folder: parentId,
+        },
+      }],
+    }, {
+      blocksBehind: parseInt(process.env.BLOCKS_BEHIND, 10),
+      expireSeconds: parseInt(process.env.EXPIRE_SECONDS, 10),
     });
+    const newFolder = {
+      id,
+      name,
+      childFiles: [],
+      childFolders: [],
+      parentId,
+    };
+    if (parent) {
+      parent.childFolders.push(newFolder);
+    }
   },
-  addFile({ rootState, rootGetters }, {
+  async addFile({ rootState, rootGetters }, {
     id,
     name,
     date,
@@ -143,97 +153,160 @@ const storeActions = {
     sha256,
     parent,
   }) {
-    return new Promise((resolve, reject) => {
-      const { accountName } = rootGetters;
-      const data = {};
-      rootState.scatter.eos.contract(CONTRACT_ACCOUNT)
-        .then((filespace) => {
-          data.filespace = filespace;
-          return filespace.addfile(accountName, id, name, parent.id, 0, { authorization: accountName });
-        })
-        .then(() => data.filespace.addversion(accountName, id, ipfsHash, sha256, date, id, { authorization: accountName }))
-        .then(() => data.filespace.setcurrentve(accountName, id, id, { authorization: accountName }))
-        .then(() => {
-          const version = {
-            id,
-            date,
-            ipfs_hash: ipfsHash,
-            sha256,
-            likes: [],
-          };
-          const newFile = {
-            name,
-            id,
-            versions: [version],
-            currentVersion: version,
-          };
-          parent.childFiles.push(newFile);
-          resolve(newFile);
-        })
-        .catch((err) => {
-          reject(err);
-        });
+    const { accountName } = rootGetters;
+    await rootState.scatter.api.transact({
+      actions: [{
+        account: CONTRACT_ACCOUNT,
+        name: 'addfile',
+        authorization: [{
+          actor: accountName,
+          permission: 'active',
+        }],
+        data: {
+          user: accountName,
+          id,
+          name,
+          parent_folder: parent.id,
+          current_version: 0,
+        },
+      }],
+    }, {
+      blocksBehind: parseInt(process.env.BLOCKS_BEHIND, 10),
+      expireSeconds: parseInt(process.env.EXPIRE_SECONDS, 10),
     });
+    await rootState.scatter.api.transact({
+      actions: [{
+        account: CONTRACT_ACCOUNT,
+        name: 'addversion',
+        authorization: [{
+          actor: accountName,
+          permission: 'active',
+        }],
+        data: {
+          user: accountName,
+          id,
+          ipfs_hash: ipfsHash,
+          sha256,
+          date,
+          file: id,
+        },
+      }],
+    }, {
+      blocksBehind: parseInt(process.env.BLOCKS_BEHIND, 10),
+      expireSeconds: parseInt(process.env.EXPIRE_SECONDS, 10),
+    });
+    await rootState.scatter.api.setcurrentve({
+      actions: [{
+        account: CONTRACT_ACCOUNT,
+        name: 'addversion',
+        authorization: [{
+          actor: accountName,
+          permission: 'active',
+        }],
+        data: {
+          user: accountName,
+          id,
+          new_current_version: id,
+        },
+      }],
+    }, {
+      blocksBehind: parseInt(process.env.BLOCKS_BEHIND, 10),
+      expireSeconds: parseInt(process.env.EXPIRE_SECONDS, 10),
+    });
+    const version = {
+      id,
+      date,
+      ipfs_hash: ipfsHash,
+      sha256,
+      likes: [],
+    };
+    const newFile = {
+      name,
+      id,
+      versions: [version],
+      currentVersion: version,
+    };
+    parent.childFiles.push(newFile);
   },
-  deleteFolder({ rootState, rootGetters }, {
+  async deleteFolder({ rootState, rootGetters }, {
     object,
     parent,
   }) {
-    return new Promise((resolve, reject) => {
-      rootState.scatter.eos.contract(CONTRACT_ACCOUNT).then((filespace) => {
-        const { accountName } = rootGetters;
-        filespace.deletefolder(accountName, object.id, { authorization: accountName }).then(() => {
-          if (parent) {
-            const index = parent.childFolders.indexOf(object);
-            parent.childFolders.splice(index, 1);
-          }
-          resolve();
-        }, (err) => {
-          reject(err);
-        });
-      }, (err) => {
-        reject(err);
-      });
+    const { accountName } = rootGetters;
+    await rootState.scatter.api.deletefolder({
+      actions: [{
+        account: CONTRACT_ACCOUNT,
+        name: 'addfile',
+        authorization: [{
+          actor: accountName,
+          permission: 'active',
+        }],
+        data: {
+          user: accountName,
+          id: object.id,
+        },
+      }],
+    }, {
+      blocksBehind: parseInt(process.env.BLOCKS_BEHIND, 10),
+      expireSeconds: parseInt(process.env.EXPIRE_SECONDS, 10),
     });
+    if (parent) {
+      const index = parent.childFolders.indexOf(object);
+      parent.childFolders.splice(index, 1);
+    }
   },
-  deleteFile({ rootState, rootGetters }, {
+  async deleteFile({ rootState, rootGetters }, {
     object,
     parent,
   }) {
-    return new Promise((resolve, reject) => {
-      rootState.scatter.eos.contract(CONTRACT_ACCOUNT).then((filespace) => {
-        const { accountName } = rootGetters;
-        filespace.deletefile(accountName, object.id, { authorization: accountName }).then(() => {
-          if (parent) {
-            const index = parent.childFiles.indexOf(object);
-            parent.childFiles.splice(index, 1);
-          }
-          resolve();
-        }, (err) => {
-          reject(err);
-        });
-      }, (err) => {
-        reject(err);
-      });
+    const { accountName } = rootGetters;
+    await rootState.scatter.api.deletefile({
+      actions: [{
+        account: CONTRACT_ACCOUNT,
+        name: 'addfile',
+        authorization: [{
+          actor: accountName,
+          permission: 'active',
+        }],
+        data: {
+          user: accountName,
+          id: object.id,
+        },
+      }],
+    }, {
+      blocksBehind: parseInt(process.env.BLOCKS_BEHIND, 10),
+      expireSeconds: parseInt(process.env.EXPIRE_SECONDS, 10),
     });
+    if (parent) {
+      const index = parent.childFiles.indexOf(object);
+      parent.childFiles.splice(index, 1);
+    }
   },
-  likeVersion({ rootState, rootGetters }, {
+  async likeVersion({ rootState, rootGetters }, {
     version,
     accountName,
   }) {
-    return new Promise((resolve, reject) => {
-      rootState.scatter.eos.contract(CONTRACT_ACCOUNT).then((filespace) => {
-        const myAccountName = rootGetters.accountName;
-        filespace.addlike(myAccountName, Date.now(), accountName || myAccountName, version.id, { authorization: myAccountName }).then(() => {
-          version.likes.push(myAccountName);
-          resolve();
-        }, (err) => {
-          reject(err);
-        });
-      }, (err) => {
-        reject(err);
-      });
+    const myAccountName = rootGetters.accountName;
+    await rootState.scatter.api.deletefile({
+      actions: [{
+        account: CONTRACT_ACCOUNT,
+        name: 'addlike',
+        authorization: [{
+          actor: myAccountName,
+          permission: 'active',
+        }],
+        data: {
+          user: myAccountName,
+          id: Date.now(),
+          liked: accountName || myAccountName,
+          version: version.id,
+        },
+      }],
+    }, {
+      blocksBehind: parseInt(process.env.BLOCKS_BEHIND, 10),
+      expireSeconds: parseInt(process.env.EXPIRE_SECONDS, 10),
     });
+    version.likes.push(myAccountName);
   },
   getFilespace({
     dispatch,
@@ -243,7 +316,7 @@ const storeActions = {
   }) {
     return new Promise((resolve) => {
       const { accountName } = rootGetters;
-      getFilespaceData(rootState.scatter.eos, accountName).then((rootFolder) => {
+      getFilespaceData(rootState.scatter.rpc, accountName).then((rootFolder) => {
         if (rootFolder) {
           commit('setRoot', rootFolder);
           resolve();
@@ -260,7 +333,7 @@ const storeActions = {
   // gets another user's filespace
   getOtherFilespace({ rootState }, { accountName }) {
     return new Promise((resolve) => {
-      getFilespaceData(rootState.scatter.eos, accountName).then((rootFolder) => {
+      getFilespaceData(rootState.scatter.rpc, accountName).then((rootFolder) => {
         resolve(rootFolder);
       });
     });

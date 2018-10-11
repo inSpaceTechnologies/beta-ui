@@ -6,10 +6,10 @@ file, You can obtain one at https://mozilla.org/MPL/2.0/.
 */
 const FRIENDS_ACCOUNT_NAME = 'friends';
 
-function getTables(eos) {
+function getTables(rpc) {
   return new Promise((resolve) => {
     const data = {};
-    eos.getTableRows({
+    rpc.get_table_rows({
       json: true,
       scope: FRIENDS_ACCOUNT_NAME,
       code: FRIENDS_ACCOUNT_NAME,
@@ -18,7 +18,7 @@ function getTables(eos) {
     })
       .then((result) => {
         data.rawRequests = result.rows;
-        return eos.getTableRows({
+        return rpc.get_table_rows({
           json: true,
           scope: FRIENDS_ACCOUNT_NAME,
           code: FRIENDS_ACCOUNT_NAME,
@@ -33,9 +33,9 @@ function getTables(eos) {
   });
 }
 
-function getFriendData(eos, accountName) {
+function getFriendData(rpc, accountName) {
   return new Promise((resolve) => {
-    getTables(eos).then(({ rawRequests, rawFriendships }) => {
+    getTables(rpc).then(({ rawRequests, rawFriendships }) => {
       const sentRequests = [];
       const receivedRequests = [];
       const friends = [];
@@ -83,7 +83,7 @@ const storeActions = {
   getFriends({ commit, rootState, rootGetters }) {
     return new Promise((resolve) => {
       const { accountName } = rootGetters;
-      getFriendData(rootState.scatter.eos, accountName).then(({ sentRequests, receivedRequests, friends }) => {
+      getFriendData(rootState.scatter.rpc, accountName).then(({ sentRequests, receivedRequests, friends }) => {
         commit('setSentRequests', sentRequests);
         commit('setReceivedRequests', receivedRequests);
         commit('setFriends', friends);
@@ -91,16 +91,24 @@ const storeActions = {
       });
     });
   },
-  addFriendRequest({ rootState, rootGetters }, requestAccount) {
-    return new Promise((resolve, reject) => {
-      rootState.scatter.eos.contract('friends').then((friendsContract) => {
-        const { accountName } = rootGetters;
-        friendsContract.addrequest(accountName, requestAccount, { authorization: accountName }).then(() => {
-          resolve();
-        });
-      }, (err) => {
-        reject(err);
-      });
+  async addFriendRequest({ rootState, rootGetters }, requestAccount) {
+    const { accountName } = rootGetters;
+    await rootState.scatter.api.transact({
+      actions: [{
+        account: 'friends',
+        name: 'addrequest',
+        authorization: [{
+          actor: accountName,
+          permission: 'active',
+        }],
+        data: {
+          user: accountName,
+          to: requestAccount,
+        },
+      }],
+    }, {
+      blocksBehind: parseInt(process.env.BLOCKS_BEHIND, 10),
+      expireSeconds: parseInt(process.env.EXPIRE_SECONDS, 10),
     });
   },
 };

@@ -6,12 +6,14 @@ file, You can obtain one at https://mozilla.org/MPL/2.0/.
 */
 /* eslint no-shadow: ["error", { "allow": ["state"] }] */
 
-import * as Eos from 'eosjs';
+const eosjs = require('eosjs');
+const fetch = require('node-fetch');
 
 const state = {
   network: null,
   scatter: null,
-  eos: null,
+  api: null,
+  rpc: null,
   // scatter.identity cannot be watched, so we add this
   identitySet: false,
 };
@@ -25,11 +27,11 @@ const mutations = {
     state.scatter = scatter;
     state.network = network;
 
-    const eosOptions = {};
+    const rpc = new eosjs.Rpc.JsonRpc(`${network.protocol}://${network.host}:${network.port}`, { fetch });
+    const api = new eosjs.Api({ rpc, signatureProvider: scatter.eosHook(network) });
 
-    const eos = scatter.eos(state.network, Eos, eosOptions);
-
-    state.eos = eos;
+    state.rpc = rpc;
+    state.api = api;
 
     if (scatter.identity) {
       state.identitySet = true;
@@ -44,12 +46,9 @@ const actions = {
   requestIdentity({ state, commit }) {
     return new Promise((resolve, reject) => {
       // You can require certain fields
-      state.scatter.getIdentity({ accounts: [state.network] }).then((identity) => {
-        // Identities must be bound to scatter to be
-        // able to request transaction signatures
-        state.scatter.useIdentity(identity);
+      state.scatter.getIdentity({ accounts: [state.network] }).then(() => {
         commit('setIdentitySet', true);
-        resolve(identity);
+        resolve();
       }, (err) => {
         reject(err);
       });
