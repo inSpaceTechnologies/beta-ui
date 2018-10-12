@@ -13,8 +13,6 @@ import iscoin from './modules/iscoin';
 import stringPrompt from './modules/string-prompt';
 import dropdown from './modules/dropdown';
 
-import logger from '../logger';
-
 Vue.use(Vuex);
 
 const store = new Vuex.Store({
@@ -26,16 +24,6 @@ const store = new Vuex.Store({
     stringPrompt,
     dropdown,
   },
-});
-
-store.watch(state => state.scatter.identitySet, () => {
-  store.dispatch('getFilespace')
-    .then(() => store.dispatch('getFriends'))
-    .then(() => store.dispatch('getIscoinData'))
-    .then(() => {
-    }, (err) => {
-      logger.error(err.message);
-    });
 });
 
 export default store;

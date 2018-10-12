@@ -114,6 +114,7 @@ file, You can obtain one at https://mozilla.org/MPL/2.0/.
 </style>
 <script>
 import logger from '../logger';
+import inspaceAPI from '../inspaceapi';
 
 function notifyError(message) {
   logger.notify({
@@ -175,14 +176,10 @@ export default {
       });
     },
     startUpload() {
-      if (!this.$auth.check()) {
-        notifyError('Please log in to upload files to inSpace storage.');
-        return;
-      }
       const fileInputElement = this.$refs.fileInput;
       fileInputElement.click();
     },
-    completeUpload(event) {
+    async completeUpload(event) {
       const file = event.srcElement.files[0];
 
       const formData = new FormData();
@@ -196,7 +193,9 @@ export default {
         },
       };
 
-      this.axios.post('/ipfs/upload', formData, config).then((response) => {
+      const axiosInstance = await inspaceAPI.getAxiosInstance();
+
+      axiosInstance.post('/ipfs/upload', formData, config).then((response) => {
         this.$store.dispatch('addFile', {
           id: Date.now(),
           name: file.name,
@@ -222,23 +221,20 @@ export default {
         notifyError(err);
       });
     },
-    deleteFile() {
+    async deleteFile() {
       const hash = this.object.currentVersion.ipfs_hash;
-      this.$store.dispatch('deleteFile', {
+      await this.$store.dispatch('deleteFile', {
         object: this.object,
         parent: this.parent,
-      }).then(() => {
-        // unpin if there are no instances of the file in filespace
-        if (!this.$store.getters.containsHash(hash)) {
-          this.axios.put(`/ipfs/unpin/${hash}`).then((response) => {
-            logger.log(response.data.pinset);
-          });
-        } else {
-          logger.log('Did not unpin');
-        }
-      }, (err) => {
-        notifyError(err);
       });
+      // unpin if there are no instances of the file in filespace
+      if (!this.$store.getters.containsHash(hash)) {
+        const axiosInstance = await inspaceAPI.getAxiosInstance();
+        const response = await axiosInstance.put(`/ipfs/unpin/${hash}`);
+        logger.log(response.data.pinset);
+      } else {
+        logger.log('Did not unpin');
+      }
     },
     likeFile() {
       this.$store.dispatch('likeVersion', {

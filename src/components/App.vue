@@ -6,22 +6,17 @@ file, You can obtain one at https://mozilla.org/MPL/2.0/.
 -->
 <template>
   <div id="wrapper">
-    <template v-if="$auth.ready()">
-      <navbar id="navbar"/>
-      <div id="content">
-        <router-view class="z-index-1"/>
-        <div id="noty-parent">
-          <div
-            id="noty-container"
-            class="z-index-2"
-          />
-        </div>
+    <navbar id="navbar"/>
+    <div id="content">
+      <router-view class="z-index-1"/>
+      <div id="noty-parent">
+        <div
+          id="noty-container"
+          class="z-index-2"
+        />
       </div>
-      <string-prompt/>
-    </template>
-    <template v-else>
-      Loading ...
-    </template>
+    </div>
+    <string-prompt/>
   </div>
 </template>
 <style>

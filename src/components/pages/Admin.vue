@@ -74,6 +74,7 @@ file, You can obtain one at https://mozilla.org/MPL/2.0/.
 </style>
 <script>
 import logger from '../../logger';
+import inspaceAPI from '../../inspaceapi';
 
 function objectToHTML(object) {
   let html = '<ul>';
@@ -103,8 +104,9 @@ export default {
     };
   },
   methods: {
-    checkIPFSStatus() {
-      this.axios.get('/ipfs/started').then((response) => {
+    async checkIPFSStatus() {
+      const axiosInstance = await inspaceAPI.getAxiosInstance();
+      axiosInstance.get('/ipfs/started').then((response) => {
         if (response.data) {
           this.ipfsStatus = 'started';
         } else {
@@ -114,43 +116,49 @@ export default {
         logger.error(err);
       });
     },
-    startIPFS() {
-      this.axios.put('/ipfs/start').then((response) => {
+    async startIPFS() {
+      const axiosInstance = await inspaceAPI.getAxiosInstance();
+      axiosInstance.put('/ipfs/start').then((response) => {
         logger.log(response);
       }, (err) => {
         logger.error(err);
       });
     },
-    stopIPFS() {
-      this.axios.put('/ipfs/stop').then((response) => {
+    async stopIPFS() {
+      const axiosInstance = await inspaceAPI.getAxiosInstance();
+      axiosInstance.put('/ipfs/stop').then((response) => {
         logger.log(response);
       }, (err) => {
         logger.error(err);
       });
     },
-    initIPFS() {
-      this.axios.put('/ipfs/init').then((response) => {
+    async initIPFS() {
+      const axiosInstance = await inspaceAPI.getAxiosInstance();
+      axiosInstance.put('/ipfs/init').then((response) => {
         logger.log(response);
       }, (err) => {
         logger.error(err);
       });
     },
-    cleanupIPFS() {
-      this.axios.put('/ipfs/cleanup').then((response) => {
+    async cleanupIPFS() {
+      const axiosInstance = await inspaceAPI.getAxiosInstance();
+      axiosInstance.put('/ipfs/cleanup').then((response) => {
         logger.log(response);
       }, (err) => {
         logger.error(err);
       });
     },
-    getIPFSConfig() {
-      this.axios.get('/ipfs/config').then((response) => {
+    async getIPFSConfig() {
+      const axiosInstance = await inspaceAPI.getAxiosInstance();
+      axiosInstance.get('/ipfs/config').then((response) => {
         this.ipfsConfig = objectToHTML(response.data);
       }, (err) => {
         logger.error(err);
       });
     },
-    getIPFSPinned() {
-      this.axios.get('/ipfs/pin/ls').then((response) => {
+    async getIPFSPinned() {
+      const axiosInstance = await inspaceAPI.getAxiosInstance();
+      axiosInstance.get('/ipfs/pin/ls').then((response) => {
         this.ipfsPinned = objectToHTML(response.data);
       }, (err) => {
         logger.error(err);

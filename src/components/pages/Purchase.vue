@@ -57,6 +57,7 @@ file, You can obtain one at https://mozilla.org/MPL/2.0/.
 </template>
 <script>
 import logger from '../../logger';
+import inspaceAPI from '../../inspaceapi';
 
 export default {
   data() {
@@ -67,9 +68,10 @@ export default {
   },
   async mounted() {
     const eosAccount = this.$store.getters.accountName;
+    const axiosInstance = await inspaceAPI.getAxiosInstance();
     let response;
     try {
-      response = await this.axios.get(`/purchase/iscoin/${eosAccount}`);
+      response = await axiosInstance.get(`/purchase/iscoin/${eosAccount}`);
     } catch (err) {
       logger.error(err.response.data);
       return;
@@ -91,9 +93,10 @@ export default {
       if (purchaseAmount <= 0) {
         return;
       }
+      const axiosInstance = await inspaceAPI.getAxiosInstance();
       let response;
       try {
-        response = await this.axios.post('/purchase/iscoin/btc', { purchaseAmount, eosAccount });
+        response = await axiosInstance.post('/purchase/iscoin/btc', { purchaseAmount, eosAccount });
       } catch (err) {
         logger.error(err.response.data);
         return;
@@ -106,9 +109,10 @@ export default {
       if (purchaseAmount <= 0) {
         return;
       }
+      const axiosInstance = await inspaceAPI.getAxiosInstance();
       let response;
       try {
-        response = await this.axios.post('/purchase/iscoin/eos', { purchaseAmount, eosAccount });
+        response = await axiosInstance.post('/purchase/iscoin/eos', { purchaseAmount, eosAccount });
       } catch (err) {
         logger.error(err.response.data);
         return;

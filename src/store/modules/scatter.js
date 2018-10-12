@@ -43,16 +43,10 @@ const mutations = {
 };
 
 const actions = {
-  requestIdentity({ state, commit }) {
-    return new Promise((resolve, reject) => {
-      // You can require certain fields
-      state.scatter.getIdentity({ accounts: [state.network] }).then(() => {
-        commit('setIdentitySet', true);
-        resolve();
-      }, (err) => {
-        reject(err);
-      });
-    });
+  async requestIdentity({ state, commit }) {
+    // You can require certain fields
+    await state.scatter.getIdentity({ accounts: [state.network] });
+    commit('setIdentitySet', true);
   },
   suggestNetwork({ state }) {
     return state.scatter.suggestNetwork(state.network);

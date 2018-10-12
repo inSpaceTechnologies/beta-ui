@@ -9,13 +9,6 @@ import ScatterEOS from 'scatterjs-plugin-eosjs2';
 
 import Vue from 'vue';
 import VueRouter from 'vue-router';
-import axios from 'axios';
-import VueAxios from 'vue-axios';
-
-import VueAuth from '@websanova/vue-auth';
-import VueAuthBearer from '@websanova/vue-auth/drivers/auth/bearer';
-import VueAuthAxios from '@websanova/vue-auth/drivers/http/axios.1.x';
-import VueAuthRouter from '@websanova/vue-auth/drivers/router/vue-router.2.x';
 
 import WebFont from 'webfontloader';
 
@@ -34,8 +27,6 @@ import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
 import appComponent from './components/App.vue';
 
 import homeComponent from './components/pages/Home.vue';
-import loginComponent from './components/pages/Login.vue';
-import signupComponent from './components/pages/Signup.vue';
 import friendsComponent from './components/pages/Friends.vue';
 import notFoundComponent from './components/pages/404.vue';
 import adminComponent from './components/pages/Admin.vue';
@@ -52,6 +43,10 @@ import modalDialogComponent from './components/ModalDialog.vue';
 import filespaceComponent from './components/Filespace.vue';
 import dropdownButtonComponent from './components/DropdownButton.vue';
 import dropdownMenuComponent from './components/DropdownMenu.vue';
+
+import logger from './logger';
+import auth from './auth';
+import inspaceAPI from './inspaceapi';
 
 import store from './store';
 
@@ -109,31 +104,7 @@ const router = new VueRouter({
     },
     {
       path: '/admin',
-      meta: {
-        auth: {
-          roles: 'admin',
-        },
-      },
       component: adminComponent,
-    },
-    // dummy page that requires auth, for testing
-    {
-      path: '/secure',
-      name: 'secure',
-      component: { template: '<div>secure</div>' },
-      meta: { auth: true },
-    },
-    {
-      path: '/login',
-      name: 'login',
-      component: loginComponent,
-      meta: { auth: false },
-    },
-    {
-      path: '/signup',
-      name: 'signup',
-      component: signupComponent,
-      meta: { auth: false },
     },
     {
       path: '/friends',
@@ -214,6 +185,21 @@ router.beforeEach((to, from, next) => {
 Vue.use(VueRouter);
 Vue.router = router;
 
+// do some things when the identity has been set
+
+store.watch(state => state.scatter.identitySet, async () => {
+  store.dispatch('getFilespace')
+    .then(() => store.dispatch('getFriends'))
+    .then(() => store.dispatch('getIscoinData'))
+    .then(() => auth.getAuthData())
+    .then(() => {
+    }, (err) => {
+      logger.error(err.message);
+    });
+});
+
+inspaceAPI.init();
+
 // Scatter
 
 const network = {
@@ -224,20 +210,8 @@ const network = {
   chainId: process.env.EOS_CHAIN_ID,
 };
 
-// vue-axios
+// Scatter
 
-Vue.use(VueAxios, axios);
-Vue.axios.defaults.baseURL = process.env.API_SERVER_HOST;
-
-// vue-auth
-
-Vue.use(VueAuth, {
-  auth: VueAuthBearer,
-  http: VueAuthAxios,
-  router: VueAuthRouter,
-});
-
-// Don't forget to tell ScatterJS which plugins you are using.
 ScatterJS.plugins(new ScatterEOS());
 
 // wait for Scatter before creating the Vue app

@@ -76,34 +76,6 @@ file, You can obtain one at https://mozilla.org/MPL/2.0/.
         </ul>
       </dropdown-menu>
     </div>
-    <template v-if="!$auth.check()">
-      <router-link
-        :to="{name: 'login'}"
-        exact
-        class="navbar-button"
-      >
-        <font-awesome-icon icon="sign-in-alt" />
-        Log in
-      </router-link>
-      <router-link
-        :to="{name: 'signup'}"
-        exact
-        class="navbar-button"
-      >
-        <font-awesome-icon icon="user-plus" />
-        Sign up
-      </router-link>
-    </template>
-    <template v-if="$auth.check()">
-      <a
-        href=""
-        class="navbar-button"
-        @click="logout()"
-      >
-        <font-awesome-icon icon="sign-out-alt" />
-        Log out
-      </a>
-    </template>
   </div>
 </template>
 <style scoped>
@@ -146,11 +118,6 @@ export default {
     };
   },
   methods: {
-    logout() {
-      this.$auth.logout({
-        makeRequest: false, // just delete token
-      });
-    },
     sendFriendRequest(recipient) {
       this.$store.dispatch('addFriendRequest', recipient).then(() => this.$store.dispatch('getFriends')).then(() => {
       }, (err) => {

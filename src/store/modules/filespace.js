@@ -69,9 +69,9 @@ async function getFilespaceData(eos, accountName) {
   rawFiles.forEach((file) => {
     if (file.current_version) {
       file.currentVersion = indexedVersions[file.current_version];
+      const parentFolder = indexedFolders[file.parent_folder];
+      parentFolder.childFiles.push(file);
     }
-    const parentFolder = indexedFolders[file.parent_folder];
-    parentFolder.childFiles.push(file);
   });
 
   rawFolders.forEach((folder) => {
@@ -195,10 +195,10 @@ const storeActions = {
       blocksBehind: parseInt(process.env.BLOCKS_BEHIND, 10),
       expireSeconds: parseInt(process.env.EXPIRE_SECONDS, 10),
     });
-    await rootState.scatter.api.setcurrentve({
+    await rootState.scatter.api.transact({
       actions: [{
         account: CONTRACT_ACCOUNT,
-        name: 'addversion',
+        name: 'setcurrentve',
         authorization: [{
           actor: accountName,
           permission: 'active',
