@@ -5,53 +5,62 @@ License, v. 2.0. If a copy of the MPL was not distributed with this
 file, You can obtain one at https://mozilla.org/MPL/2.0/.
 -->
 <template>
-  <div>
-    <button
-      type="button"
-      @click="sendFriendRequest()"
-    >
-      Send a new friend request...
-    </button>
-    <h2>Sent friend requests</h2>
-    <ul>
-      <li
-        v-for="(request, index) in $store.state.friends.sentRequests"
-        :key="index + '-sent'"
-      >
-        {{ request }}
-      </li>
-    </ul>
-    <h2>Received friend requests</h2>
-    <ul>
-      <li
-        v-for="(request, index) in $store.state.friends.receivedRequests"
-        :key="index + '-received'"
-      >
-        {{ request }}
-        <!-- Accept a friend request by sending a friend request to the requester -->
+  <div class="central">
+    <div class="card">
+      <div class="card-header">
+        <span class="card-title">
+          Friends
+        </span>
+      </div>
+      <div class="card-content">
         <button
           type="button"
-          @click="sendFriendRequest(request)"
+          @click="sendFriendRequest()"
         >
-          Accept
+          Send a new friend request...
         </button>
-      </li>
-    </ul>
-    <h2>Friends</h2>
-    <ul>
-      <li
-        v-for="(friend, index) in $store.state.friends.friends"
-        :key="index + '-friend'"
-      >
-        <router-link
-          :to="{name: 'filespace', params: { accountname: friend }}"
-          exact
-          class="router-link"
-        >
-          {{ friend }}
-        </router-link>
-      </li>
-    </ul>
+        <h2>Sent friend requests</h2>
+        <ul>
+          <li
+            v-for="(request, index) in $store.state.friends.sentRequests"
+            :key="index + '-sent'"
+          >
+            {{ request }}
+          </li>
+        </ul>
+        <h2>Received friend requests</h2>
+        <ul>
+          <li
+            v-for="(request, index) in $store.state.friends.receivedRequests"
+            :key="index + '-received'"
+          >
+            {{ request }}
+            <!-- Accept a friend request by sending a friend request to the requester -->
+            <button
+              type="button"
+              @click="sendFriendRequest(request)"
+            >
+              Accept
+            </button>
+          </li>
+        </ul>
+        <h2>Friends</h2>
+        <ul>
+          <li
+            v-for="(friend, index) in $store.state.friends.friends"
+            :key="index + '-friend'"
+          >
+            <router-link
+              :to="{name: 'filespace', params: { accountname: friend }}"
+              exact
+              class="router-link"
+            >
+              {{ friend }}
+            </router-link>
+          </li>
+        </ul>
+      </div>
+    </div>
   </div>
 </template>
 <script>
