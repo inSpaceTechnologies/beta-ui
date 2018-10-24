@@ -15,7 +15,7 @@ async function generateAuthData() {
   }
   const expirationDate = Date.now() + EXPIRY;
 
-  const { publicKey } = store.state.scatter.scatter.identity;
+  const { publicKey } = store.getters;
   const data = `${expirationDate}`; // breaks if this is a number
   const whatFor = 'Verify identity';
   const isHash = false;
@@ -33,7 +33,7 @@ async function getAuthData() {
   let data = localStorage.getItem(KEY);
   if (data) {
     const parsedData = JSON.parse(data);
-    const { publicKey } = store.state.scatter.scatter.identity;
+    const { publicKey } = store.getters;
     if (parsedData.publicKey === publicKey && parsedData.expirationDate > Date.now()) {
       return parsedData;
     }
