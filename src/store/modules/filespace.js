@@ -233,10 +233,10 @@ const storeActions = {
     parent,
   }) {
     const { accountName } = rootGetters;
-    await rootState.scatter.api.deletefolder({
+    await rootState.scatter.api.transact({
       actions: [{
         account: CONTRACT_ACCOUNT,
-        name: 'addfile',
+        name: 'deletefolder',
         authorization: [{
           actor: accountName,
           permission: 'active',
@@ -260,10 +260,10 @@ const storeActions = {
     parent,
   }) {
     const { accountName } = rootGetters;
-    await rootState.scatter.api.deletefile({
+    await rootState.scatter.api.transact({
       actions: [{
         account: CONTRACT_ACCOUNT,
-        name: 'addfile',
+        name: 'deletefile',
         authorization: [{
           actor: accountName,
           permission: 'active',
