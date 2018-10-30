@@ -42,41 +42,14 @@ file, You can obtain one at https://mozilla.org/MPL/2.0/.
         </span>
       </div>
       <div class="card-content">
-        <h2>What is Scatter?</h2>
-        <p>"Scatter is a browser extension that allows you to sign transactions for multiple blockchains and provide personal information to web applications without ever exposing your keys or filling out forms."</p>
-        <h2>Getting Scatter</h2>
-        <p>Get Scatter <a target="_blank" href="https://chrome.google.com/webstore/detail/scatter/ammjpmhgckkpcamddpolhchgomcojkle">from the Chrome Store</a>. Currently only the <a target="_blank" href="https://www.google.com/chrome/">Chrome</a> web browser is supported.</p> <!-- eslint-disable-line vue/max-attributes-per-line -->
-        <h2>Accessing Scatter</h2>
-        <p>Access Scatter by clicking the Scatter icon on Chrome's toolbar.</p>
-        <h2>Adding your EOS key pair</h2>
-        <ul>
-          <li>Click 'Key Pairs' on Scatter's main menu.</li>
-          <li>Click 'New'.</li>
-          <li>Select 'EOS' in the drop down menu.</li>
-          <li>Enter a name for the key pair in the 'Name' box.</li>
-          <li>Enter your private key in the 'Private Key' box.</li>
-          <li>Click 'Save'.</li>
-        </ul>
-        <h2>Adding the EOS network</h2>
-        <ul>
-          <li>Click the cog icon on Scatter's main menu.</li>
-          <li>Click 'Networks'</li>
-          <li>Click 'New'.</li>
-          <li>Select 'EOS' in the drop down menu.</li>
-          <li>Enter a name for the network in the 'Name' box.</li>
-          <li>Select 'http' or 'https' as appropriate from the protocal menu.</li>
-          <li>Enter the domain or IP address in the 'Domain or IP' box.</li>
-          <li>Enter the port in the 'Port' box.</li>
-          <li>Click 'Save'.</li>
-        </ul>
-        <h2>Creating your identity</h2>
-        <ul>
-          <li>Click 'Identities' on Scatter's main menu.</li>
-          <li>Click 'New'.</li>
-          <li>Select the network and key pair from the drop down menus.</li>
-          <li>Click 'Import'.</li>
-          <li>Click 'Save'.</li>
-        </ul>
+        <h2>Scatter</h2>
+        <p>"Scatter is a multi-blockchain signature, identity, and reputation provider for Windows, Mac, Linux, Android, and iOS." Get it from <a target="_blank" href="https://get-scatter.com/">here</a>.</p> <!-- eslint-disable-line vue/max-attributes-per-line -->
+        <h2>Adding the network</h2>
+        <p>inSpace currently runs on a private EOS testnet. To add the network details to Scatter, click 'Add network' above after installing Scatter.</p>
+        <h2>Adding your EOS testnet account to your Scatter identity</h2>
+        <p>You will need to add your EOS testnet private key to your Scatter 'vault'. (Open your vault, click 'New', then 'Import', then 'Text or QR'.)</p>
+        <h2>Setting your identity</h2>
+        <p>Once you have completed the above steps, click 'Set identity' above. This will link your Scatter identity to the inSpace website, which will be able to use your EOS account to make transactions (subject to your approval).</p>
       </div>
     </div>
   </div>
