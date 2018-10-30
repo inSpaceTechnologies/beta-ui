@@ -112,14 +112,35 @@ export default {
     },
   },
   methods: {
-    addNetwork() {
-      this.$store.dispatch('suggestNetwork');
+    async addNetwork() {
+      try {
+        const added = await this.$store.dispatch('suggestNetwork');
+        if (added) {
+          logger.notify({
+            title: 'Success',
+            text: 'Network successfully added to Scatter.',
+            type: 'success',
+            permanent: false,
+            sticky: false,
+            buttons: null,
+          });
+        }
+      } catch (err) {
+        logger.notify({
+          title: err.code,
+          text: err.message,
+          type: 'error',
+          permanent: false,
+          sticky: true,
+          buttons: null,
+        });
+      }
     },
     requestIdentity() {
       this.$store.dispatch('requestIdentity').then(() => {
       }, (err) => {
         logger.notify({
-          title: 'Error',
+          title: err.code,
           text: err.message,
           type: 'error',
           permanent: false,
