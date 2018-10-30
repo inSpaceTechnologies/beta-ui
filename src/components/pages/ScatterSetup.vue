@@ -14,7 +14,7 @@ file, You can obtain one at https://mozilla.org/MPL/2.0/.
       </div>
       <div class="card-content">
         <template v-if="!this.$store.state.scatter.scatter">
-          <p>Scatter not detected. You can get it <a href="https://chrome.google.com/webstore/detail/scatter/ammjpmhgckkpcamddpolhchgomcojkle">here.</a></p>
+          <p>Scatter not detected. You can get it from <a target="_blank" href="https://get-scatter.com/">here</a></p> <!-- eslint-disable-line vue/max-attributes-per-line -->
         </template>
         <template v-else-if="!this.$store.state.scatter.identitySet">
           <p>Scatter detected. You must now set your identity. Please click 'Set identity' when you are ready to do so.</p>
