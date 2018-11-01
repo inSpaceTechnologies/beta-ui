@@ -116,10 +116,13 @@ file, You can obtain one at https://mozilla.org/MPL/2.0/.
 import logger from '../logger';
 import inspaceAPI from '../inspaceapi';
 
-function notifyError(message) {
+function notifyError(err) {
+  if (!err.message) {
+    return;
+  }
   logger.notify({
     title: 'Error',
-    text: message,
+    text: err.message,
     type: 'error',
     permanent: false,
     sticky: true,
