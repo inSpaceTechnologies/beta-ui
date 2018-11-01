@@ -165,18 +165,18 @@ export default {
     toggle() {
       this.open = !this.open;
     },
-    addChildFolder() {
-      this.$store.dispatch('openStringPrompt', {
+    async addChildFolder() {
+      const value = await this.$store.dispatch('openStringPrompt', {
         text: 'Enter folder name',
         value: '',
-      }).then((value) => {
-        if (value) {
-          this.$store.dispatch('addFolder', { id: Date.now(), name: value, parent: this.object }).then(() => {
-          }, (err) => {
-            notifyError(err);
-          });
-        }
       });
+      if (value) {
+        try {
+          await this.$store.dispatch('addFolder', { id: Date.now(), name: value, parent: this.object });
+        } catch (err) {
+          notifyError(err);
+        }
+      }
     },
     startUpload() {
       const fileInputElement = this.$refs.fileInput;
@@ -196,57 +196,59 @@ export default {
         },
       };
 
-      const axiosInstance = await inspaceAPI.getAxiosInstance();
-
-      axiosInstance.post('/ipfs/upload', formData, config).then((response) => {
-        this.$store.dispatch('addFile', {
+      try {
+        const axiosInstance = await inspaceAPI.getAxiosInstance();
+        const response = await axiosInstance.post('/ipfs/upload', formData, config);
+        await this.$store.dispatch('addFile', {
           id: Date.now(),
           name: file.name,
           date: Date.now(),
           ipfsHash: response.data.ipfsHash,
           sha256: response.data.sha256,
           parent: this.object,
-        }).then(() => {
-
-        }, (err) => {
-          notifyError(err);
         });
-      }, (err) => {
+      } catch (err) {
         notifyError(err);
-      });
-    },
-    deleteFolder() {
-      this.$store.dispatch('deleteFolder', {
-        object: this.object,
-        parent: this.parent,
-      }).then(() => {
-      }, (err) => {
-        notifyError(err);
-      });
-    },
-    async deleteFile() {
-      const hash = this.object.currentVersion.ipfs_hash;
-      await this.$store.dispatch('deleteFile', {
-        object: this.object,
-        parent: this.parent,
-      });
-      // unpin if there are no instances of the file in filespace
-      if (!this.$store.getters.containsHash(hash)) {
-        const axiosInstance = await inspaceAPI.getAxiosInstance();
-        const response = await axiosInstance.put(`/ipfs/unpin/${hash}`);
-        logger.log(response.data.pinset);
-      } else {
-        logger.log('Did not unpin');
       }
     },
-    likeFile() {
-      this.$store.dispatch('likeVersion', {
-        version: this.object.currentVersion,
-        accountName: this.accountName,
-      }).then(() => {
-      }, (err) => {
+    async deleteFolder() {
+      try {
+        await this.$store.dispatch('deleteFolder', {
+          object: this.object,
+          parent: this.parent,
+        });
+      } catch (err) {
         notifyError(err);
-      });
+      }
+    },
+    async deleteFile() {
+      try {
+        const hash = this.object.currentVersion.ipfs_hash;
+        await this.$store.dispatch('deleteFile', {
+          object: this.object,
+          parent: this.parent,
+        });
+        // unpin if there are no instances of the file in filespace
+        if (!this.$store.getters.containsHash(hash)) {
+          const axiosInstance = await inspaceAPI.getAxiosInstance();
+          const response = await axiosInstance.put(`/ipfs/unpin/${hash}`);
+          logger.log(response.data.pinset);
+        } else {
+          logger.log('Did not unpin');
+        }
+      } catch (err) {
+        notifyError(err);
+      }
+    },
+    async likeFile() {
+      try {
+        await this.$store.dispatch('likeVersion', {
+          version: this.object.currentVersion,
+          accountName: this.accountName,
+        });
+      } catch (err) {
+        notifyError(err);
+      }
     },
   },
 };
