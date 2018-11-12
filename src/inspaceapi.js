@@ -13,9 +13,16 @@ async function getAxiosInstance() {
   // fetch every time in case expired
   const authData = await auth.getAuthData();
 
+  // INTERIM: workaround for https://github.com/axios/axios/issues/385
+  // save the default headers before changing any instances
+  const defaultHeaders = JSON.parse(JSON.stringify(axios.defaults.headers));
+
   axiosInstance.defaults.headers.common['public-key'] = authData.publicKey;
   axiosInstance.defaults.headers.common.signature = authData.signature;
   axiosInstance.defaults.headers.common['expiration-date'] = authData.expirationDate;
+
+  // re-set the default settings in the global axios
+  axios.defaults.headers = defaultHeaders;
 
   return axiosInstance;
 }
