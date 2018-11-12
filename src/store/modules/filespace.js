@@ -4,6 +4,8 @@ This Source Code Form is subject to the terms of the Mozilla Public
 License, v. 2.0. If a copy of the MPL was not distributed with this
 file, You can obtain one at https://mozilla.org/MPL/2.0/.
 */
+import logger from '../../logger';
+
 const CONTRACT_ACCOUNT = 'filespace';
 
 function getTable(rpc, scope, tableName) {
@@ -26,21 +28,26 @@ async function getTables(rpc, accountName) {
   data.rawFiles = await getTable(rpc, accountName, 'files');
   data.rawVersions = await getTable(rpc, accountName, 'versions');
   data.rawLikes = await getTable(rpc, CONTRACT_ACCOUNT, 'likes');
+  data.rawKeys = await getTable(rpc, accountName, 'keys');
+  data.rawEncKeys = await getTable(rpc, accountName, 'enckeys');
   return data;
 }
 
-async function getFilespaceData(eos, accountName) {
+async function getFilespaceData(eos, accountName, ownPublicKey) {
   const {
     rawVersions,
     rawFiles,
     rawFolders,
     rawLikes,
+    rawKeys,
+    rawEncKeys,
   } = await getTables(eos, accountName);
 
   // index the data
   const indexedVersions = {};
   const indexedFiles = {};
   const indexedFolders = {};
+  const indexedKeys = {};
 
   rawVersions.forEach((version) => {
     version.likes = [];
@@ -53,6 +60,9 @@ async function getFilespaceData(eos, accountName) {
     indexedFolders[folder.id] = folder;
     folder.childFolders = [];
     folder.childFiles = [];
+  });
+  rawKeys.forEach((key) => {
+    indexedKeys[key.id] = key;
   });
 
   // collapse the data
@@ -69,8 +79,21 @@ async function getFilespaceData(eos, accountName) {
   rawFiles.forEach((file) => {
     if (file.current_version) {
       file.currentVersion = indexedVersions[file.current_version];
-      const parentFolder = indexedFolders[file.parent_folder];
-      parentFolder.childFiles.push(file);
+      if (!file.currentVersion) {
+        logger.error(`File ${file.id} has missing current version ${file.current_version}.`);
+      } else {
+        const parentFolder = indexedFolders[file.parent_folder];
+        parentFolder.childFiles.push(file);
+
+        if (file.currentVersion.key) {
+          rawEncKeys.forEach((rawEncKey) => {
+            if (rawEncKey.key === file.currentVersion.key && rawEncKey.public_key === ownPublicKey) {
+              file.currentVersion.encKey = rawEncKey;
+            }
+          });
+          file.currentVersion.key = indexedKeys[file.currentVersion.key];
+        }
+      }
     }
   });
 
@@ -152,8 +175,59 @@ const storeActions = {
     ipfsHash,
     sha256,
     parent,
+    keyIV,
+    encryptedKey,
+    publicKey,
+    encryptedKeyIV,
+    nonce,
   }) {
     const { accountName } = rootGetters;
+    let keyID = 0;
+    if (keyIV) {
+      keyID = id;
+      await rootState.scatter.api.transact({
+        actions: [{
+          account: CONTRACT_ACCOUNT,
+          name: 'addkey',
+          authorization: [{
+            actor: accountName,
+            permission: 'active',
+          }],
+          data: {
+            user: accountName,
+            id: keyID,
+            iv: keyIV,
+          },
+        }],
+      }, {
+        blocksBehind: parseInt(process.env.BLOCKS_BEHIND, 10),
+        expireSeconds: parseInt(process.env.EXPIRE_SECONDS, 10),
+      });
+    }
+    if (encryptedKey) {
+      await rootState.scatter.api.transact({
+        actions: [{
+          account: CONTRACT_ACCOUNT,
+          name: 'addenckey',
+          authorization: [{
+            actor: accountName,
+            permission: 'active',
+          }],
+          data: {
+            user: accountName,
+            id,
+            key: keyID,
+            public_key: publicKey,
+            iv: encryptedKeyIV,
+            nonce,
+            value: encryptedKey,
+          },
+        }],
+      }, {
+        blocksBehind: parseInt(process.env.BLOCKS_BEHIND, 10),
+        expireSeconds: parseInt(process.env.EXPIRE_SECONDS, 10),
+      });
+    }
     await rootState.scatter.api.transact({
       actions: [{
         account: CONTRACT_ACCOUNT,
@@ -189,6 +263,7 @@ const storeActions = {
           sha256,
           date,
           file: id,
+          key: keyID,
         },
       }],
     }, {
@@ -220,6 +295,20 @@ const storeActions = {
       sha256,
       likes: [],
     };
+    if (keyID) {
+      version.key = {
+        id: keyID,
+        iv: keyIV,
+      };
+      version.encKey = {
+        id,
+        key: keyID,
+        public_key: publicKey,
+        iv: encryptedKeyIV,
+        nonce,
+        value: encryptedKey,
+      };
+    }
     const newFile = {
       name,
       id,
@@ -308,35 +397,28 @@ const storeActions = {
     });
     version.likes.push(myAccountName);
   },
-  getFilespace({
+  async getFilespace({
     dispatch,
     commit,
     rootState,
     rootGetters,
   }) {
-    return new Promise((resolve) => {
-      const { accountName } = rootGetters;
-      getFilespaceData(rootState.scatter.rpc, accountName).then((rootFolder) => {
-        if (rootFolder) {
-          commit('setRoot', rootFolder);
-          resolve();
-          return;
-        }
-        // need to create the root
-        dispatch('addFolder', { id: 1, name: process.env.FILESPACE_ROOT_NAME, parent: null }).then((newRoot) => {
-          commit('setRoot', newRoot);
-          resolve();
-        });
-      });
+    const { accountName, publicKey } = rootGetters;
+    const rootFolder = await getFilespaceData(rootState.scatter.rpc, accountName, publicKey);
+    if (rootFolder) {
+      commit('setRoot', rootFolder);
+      return;
+    }
+    // need to create the root
+    dispatch('addFolder', { id: 1, name: process.env.FILESPACE_ROOT_NAME, parent: null }).then((newRoot) => {
+      commit('setRoot', newRoot);
     });
   },
   // gets another user's filespace
-  getOtherFilespace({ rootState }, { accountName }) {
-    return new Promise((resolve) => {
-      getFilespaceData(rootState.scatter.rpc, accountName).then((rootFolder) => {
-        resolve(rootFolder);
-      });
-    });
+  async getOtherFilespace({ rootState, rootGetters }, { accountName }) {
+    const { publicKey } = rootGetters;
+    const root = await getFilespaceData(rootState.scatter.rpc, accountName, publicKey);
+    return root;
   },
 };
 
