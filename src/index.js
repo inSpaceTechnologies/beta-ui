@@ -215,7 +215,7 @@ const network = {
 ScatterJS.plugins(new ScatterEOS());
 
 // wait for Scatter before creating the Vue app
-ScatterJS.scatter.connect('inspaceWebapp').then((connected) => {
+ScatterJS.scatter.connect(process.env.APP_NAME).then((connected) => {
   if (connected) {
     const { scatter } = ScatterJS;
     store.commit('setScatter', { network, scatter });
