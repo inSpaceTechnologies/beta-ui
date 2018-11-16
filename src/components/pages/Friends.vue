@@ -59,20 +59,61 @@ file, You can obtain one at https://mozilla.org/MPL/2.0/.
             </router-link>
           </li>
         </ul>
+        <h2>Seach accounts</h2>
+        <input
+          type="text"
+          @input="onSearch"
+        >
+        <ul>
+          <li
+            v-for="(result, index) in searchResults"
+            :key="index + '-result'"
+          >
+            {{ result.accountName }}
+            <button
+              type="button"
+              @click="sendFriendRequest(result.accountName)"
+            >
+              Send friend request
+            </button>
+          </li>
+        </ul>
       </div>
     </div>
   </div>
 </template>
 <script>
+import * as JsSearch from 'js-search';
 import logger from '../../logger';
 
 export default {
+  data() {
+    return {
+      search: null,
+      searchResults: [],
+    };
+  },
+  async created() {
+    const accountList = await this.$store.dispatch('getAccountList');
+    this.search = new JsSearch.Search('accountName');
+    this.search.indexStrategy = new JsSearch.AllSubstringsIndexStrategy();
+    this.search.searchIndex = new JsSearch.UnorderedSearchIndex();
+    this.search.addIndex('accountName');
+    this.search.addDocuments(accountList);
+  },
   methods: {
     sendFriendRequest(r) {
       const send = (recipient) => {
         this.$store.dispatch('addFriendRequest', recipient).then(() => this.$store.dispatch('getFriends')).then(() => {
         }, (err) => {
-          logger.error(err);
+          logger.notify({
+            title: 'Error',
+            text: err.message,
+            type: 'error',
+            permanent: false,
+            sticky: true,
+            buttons: [],
+          });
         });
       };
       if (r) {
@@ -87,6 +128,10 @@ export default {
           }
         });
       }
+    },
+    onSearch(evt) {
+      const query = evt.target.value;
+      this.searchResults = this.search.search(query);
     },
   },
 };

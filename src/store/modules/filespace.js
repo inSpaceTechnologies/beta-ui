@@ -4,22 +4,41 @@ This Source Code Form is subject to the terms of the Mozilla Public
 License, v. 2.0. If a copy of the MPL was not distributed with this
 file, You can obtain one at https://mozilla.org/MPL/2.0/.
 */
+import axios from 'axios';
 import logger from '../../logger';
 
 const CONTRACT_ACCOUNT = 'filespace';
 
-function getTable(rpc, scope, tableName) {
-  return new Promise((resolve) => {
-    rpc.get_table_rows({
-      json: true,
-      scope,
-      code: CONTRACT_ACCOUNT,
-      table: tableName,
-      limit: 500,
-    }).then((result) => {
-      resolve(result.rows);
-    });
+async function getAccountList(/* rpc */) {
+  // TODO: get_table_by_scope has not been added to eosjs yet
+  /*
+  const result = await rpc.get_table_by_scope({
+    json: true,
+    code: CONTRACT_ACCOUNT,
+    table: 'folders',
   });
+  */
+  const url = `${process.env.EOS_PROTOCOL}://${process.env.EOS_HOST}:${process.env.EOS_PORT}/v1/chain/get_table_by_scope`;
+  const response = await axios.post(url, {
+    json: true,
+    code: CONTRACT_ACCOUNT,
+    table: 'folders',
+  });
+  if (response.data.rows) {
+    return response.data.rows.map(row => ({ accountName: row.scope }));
+  }
+  return [];
+}
+
+async function getTable(rpc, scope, tableName) {
+  const result = await rpc.get_table_rows({
+    json: true,
+    scope,
+    code: CONTRACT_ACCOUNT,
+    table: tableName,
+    limit: 500,
+  });
+  return result.rows;
 }
 
 async function getTables(rpc, accountName) {
@@ -419,6 +438,10 @@ const storeActions = {
     const { publicKey } = rootGetters;
     const root = await getFilespaceData(rootState.scatter.rpc, accountName, publicKey);
     return root;
+  },
+  async getAccountList({ rootState }) {
+    const accountList = await getAccountList(rootState.scatter.rpc);
+    return accountList;
   },
 };
 

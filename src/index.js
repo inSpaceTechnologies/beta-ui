@@ -203,7 +203,7 @@ inspaceAPI.init();
 // Scatter
 
 const network = {
-  protocol: 'http',
+  protocol: process.env.EOS_PROTOCOL,
   blockchain: 'eos',
   host: process.env.EOS_HOST,
   port: process.env.EOS_PORT,
