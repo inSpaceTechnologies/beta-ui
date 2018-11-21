@@ -443,6 +443,51 @@ const storeActions = {
     const accountList = await getAccountList(rootState.scatter.rpc);
     return accountList;
   },
+  async getActivePublicKey({ rootState }, { accountName }) {
+    const result = await rootState.scatter.rpc.get_account(accountName);
+    const { permissions } = result;
+    let key;
+    permissions.forEach((permission) => {
+      if (permission.perm_name === 'active') {
+        const k = permission.required_auth.keys[0].key;
+        key = k;
+      }
+    });
+    return key;
+  },
+  async shareKey({ rootState, rootGetters }, {
+    id,
+    keyID,
+    publicKey,
+    encryptedKeyIV,
+    nonce,
+    encryptedKey,
+  }) {
+    const { accountName } = rootGetters;
+
+    await rootState.scatter.api.transact({
+      actions: [{
+        account: CONTRACT_ACCOUNT,
+        name: 'addenckey',
+        authorization: [{
+          actor: accountName,
+          permission: 'active',
+        }],
+        data: {
+          user: accountName,
+          id,
+          key: keyID,
+          public_key: publicKey,
+          iv: encryptedKeyIV,
+          nonce,
+          value: encryptedKey,
+        },
+      }],
+    }, {
+      blocksBehind: parseInt(process.env.BLOCKS_BEHIND, 10),
+      expireSeconds: parseInt(process.env.EXPIRE_SECONDS, 10),
+    });
+  },
 };
 
 const storeGetters = {

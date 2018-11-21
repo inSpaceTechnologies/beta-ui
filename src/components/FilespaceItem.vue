@@ -44,11 +44,18 @@ file, You can obtain one at https://mozilla.org/MPL/2.0/.
         [Download decrypted]
       </a>
       <span
-        v-if="!isFolder && object.currentVersion && object.currentVersion.key && object.currentVersion.encKey"
+        v-if="!isFolder && object.currentVersion && object.currentVersion.key && object.currentVersion.encKey && !decryptedBlobUrl"
         class="filespace-button primary"
         @click="decryptFile"
       >
         [Decrypt]
+      </span>
+      <span
+        v-if="!isFolder && object.currentVersion && object.currentVersion.key && object.currentVersion.encKey"
+        class="filespace-button primary"
+        @click="shareKey"
+      >
+        [Share key]
       </span>
       <span
         v-if="!isFolder"
@@ -81,6 +88,7 @@ file, You can obtain one at https://mozilla.org/MPL/2.0/.
         :parent="object"
         :is-folder="true"
         :account-name="accountName"
+        :public-key="publicKey"
       />
       <filespace-item
         v-for="(file, index) in object.childFiles"
@@ -89,6 +97,7 @@ file, You can obtain one at https://mozilla.org/MPL/2.0/.
         :parent="object"
         :is-folder="false"
         :account-name="accountName"
+        :public-key="publicKey"
       />
       <li v-if="isFolder">
         <span
@@ -211,6 +220,11 @@ export default {
       required: false,
       default: null,
     },
+    // the account's active public key
+    publicKey: {
+      type: String,
+      required: true,
+    },
   },
   data() {
     return {
@@ -223,6 +237,70 @@ export default {
     };
   },
   methods: {
+    // initialisation vector for AES-CBC
+    generateIV() {
+      return window.crypto.getRandomValues(new Uint8Array(16));
+    },
+    async wrapKey(myPublicKey, recipientPublicKey, key) {
+      // generate nonce string
+      const nonce = generateNonce(16);
+
+      // get shared secret (between own public and private key)
+      // {fromPublicKey, toPublicKey, fromBlockchain, toBlockchain, nonce}
+      const sharedSecretString = await this.$store.state.scatter.scatter.getEncryptionKey(myPublicKey, recipientPublicKey, 'eos', 'eos', nonce);
+      const sharedSecretArrayBuffer = hexStringToArrayBuffer(sharedSecretString);
+      // shared secret is 512 bit hex (Scatter takes the SHA512 hash). we need 256 bits for AES-CBC.
+      const sharedSecret256ArrayBuffer = await window.crypto.subtle.digest({ name: 'SHA-256', length: 256 }, sharedSecretArrayBuffer);
+
+      // turn the shared secret into a wrapping key
+      const wrappingKey = await window.crypto.subtle.importKey('raw', sharedSecret256ArrayBuffer, { name: 'AES-CBC', length: 256 }, false, ['wrapKey']);
+
+      // generate iv for wrapping
+      const wrappingIV = this.generateIV();
+
+      // convert iv to hex string for storage
+      const wrappingIVString = arrayBufferToHexString(wrappingIV.buffer);
+
+      // wrap the key
+      const wrappedKeyArrayBuffer = await crypto.subtle.wrapKey('raw', key, wrappingKey, { name: 'AES-CBC', length: 256, iv: wrappingIV });
+
+      // convert the wrapped key to a hex string for storage
+      const wrappedKeyString = arrayBufferToHexString(wrappedKeyArrayBuffer);
+
+      return {
+        wrappingIVString,
+        wrappedKeyArrayBuffer,
+        wrappedKeyString,
+        nonce,
+      };
+    },
+    async unwrapKey(ownerPublicKey, myPublicKey) {
+      // get the nonce
+      const { nonce } = this.object.currentVersion.encKey;
+
+      // get shared secret (between public and private key)
+      // {fromPublicKey, toPublicKey, fromBlockchain, toBlockchain, nonce}
+      const sharedSecretString = await this.$store.state.scatter.scatter.getEncryptionKey(myPublicKey, ownerPublicKey, 'eos', 'eos', nonce);
+      const sharedSecretArrayBuffer = hexStringToArrayBuffer(sharedSecretString);
+      // shared secret is 512 bit hex (Scatter takes the SHA512 hash). we need 256 bits for AES-CBC.
+      const sharedSecret256ArrayBuffer = await window.crypto.subtle.digest({ name: 'SHA-256', length: 256 }, sharedSecretArrayBuffer);
+
+      // turn the shared secret into a wrapping key
+      const wrappingKey = await window.crypto.subtle.importKey('raw', sharedSecret256ArrayBuffer, { name: 'AES-CBC', length: 256 }, false, ['unwrapKey']);
+
+      // get the wrapping iv
+      const wrappingIVString = this.object.currentVersion.encKey.iv;
+      const wrappingIV = new Uint8Array(hexStringToArrayBuffer(wrappingIVString));
+
+      // get the wrapped key
+      const wrappedKeyString = this.object.currentVersion.encKey.value;
+      const wrappedKeyArrayBuffer = hexStringToArrayBuffer(wrappedKeyString);
+
+      // unwrap the key
+      const key = await window.crypto.subtle.unwrapKey('raw', wrappedKeyArrayBuffer, wrappingKey, { name: 'AES-CBC', length: 256, iv: wrappingIV }, { name: 'AES-CBC', length: 256 }, true, ['decrypt']);
+
+      return key;
+    },
     toggle() {
       this.open = !this.open;
     },
@@ -277,11 +355,6 @@ export default {
       }
     },
     async completeEncryptedUpload(event) {
-      // initialisation vector for AES-CBC
-      function generateIV() {
-        return window.crypto.getRandomValues(new Uint8Array(16));
-      }
-
       const file = event.srcElement.files[0];
 
       try {
@@ -293,34 +366,17 @@ export default {
           // generate key
           const key = await window.crypto.subtle.generateKey({ name: 'AES-CBC', length: 256 }, true, ['encrypt']);
 
-          // generate nonce string
-          const nonce = generateNonce(16);
-
-          // get shared secret (between own public and private key)
           const { publicKey } = this.$store.getters;
-          // {fromPublicKey, toPublicKey, fromBlockchain, toBlockchain, nonce}
-          const sharedSecretString = await this.$store.state.scatter.scatter.getEncryptionKey(publicKey, publicKey, 'eos', 'eos', nonce);
-          const sharedSecretArrayBuffer = hexStringToArrayBuffer(sharedSecretString);
-          // shared secret is 512 bit hex (Scatter takes the SHA512 hash). we need 256 bits for AES-CBC.
-          const sharedSecret256ArrayBuffer = await window.crypto.subtle.digest({ name: 'SHA-256', length: 256 }, sharedSecretArrayBuffer);
 
-          // turn the shared secret into a wrapping key
-          const wrappingKey = await window.crypto.subtle.importKey('raw', sharedSecret256ArrayBuffer, { name: 'AES-CBC', length: 256 }, false, ['wrapKey']);
-
-          // generate iv for wrapping
-          const wrappingIV = generateIV();
-
-          // convert iv to hex string for storage
-          const wrappingIVString = arrayBufferToHexString(wrappingIV.buffer);
-
-          // wrap the key
-          const wrappedKeyArrayBuffer = await crypto.subtle.wrapKey('raw', key, wrappingKey, { name: 'AES-CBC', length: 256, iv: wrappingIV });
-
-          // convert the wrapped key to a hex string for storage
-          const wrappedKeyString = arrayBufferToHexString(wrappedKeyArrayBuffer);
+          // wrap key
+          const {
+            wrappingIVString,
+            wrappedKeyString,
+            nonce,
+          } = await this.wrapKey(publicKey, publicKey, key);
 
           // generate iv for encryption
-          const encryptionIV = generateIV();
+          const encryptionIV = this.generateIV();
 
           // convert iv to hex string for storage
           const encryptionIVString = arrayBufferToHexString(encryptionIV.buffer);
@@ -361,42 +417,62 @@ export default {
       }
     },
     async decryptFile() {
-      const url = `${this.ipfsGateway}/ipfs/${this.object.currentVersion.ipfs_hash}`;
-      const response = await axios.get(url, { responseType: 'arraybuffer' });
-      const { data } = response;
+      try {
+        const url = `${this.ipfsGateway}/ipfs/${this.object.currentVersion.ipfs_hash}`;
+        const response = await axios.get(url, { responseType: 'arraybuffer' });
+        const { data } = response;
 
-      // get the nonce
-      const { nonce } = this.object.currentVersion.encKey;
+        // unwrap the key
+        const key = await this.unwrapKey(this.publicKey, this.object.currentVersion.encKey.public_key);
 
-      // get shared secret (between own public and private key)
-      const { publicKey } = this.$store.getters;
-      // {fromPublicKey, toPublicKey, fromBlockchain, toBlockchain, nonce}
-      const sharedSecretString = await this.$store.state.scatter.scatter.getEncryptionKey(publicKey, publicKey, 'eos', 'eos', nonce);
-      const sharedSecretArrayBuffer = hexStringToArrayBuffer(sharedSecretString);
-      // shared secret is 512 bit hex (Scatter takes the SHA512 hash). we need 256 bits for AES-CBC.
-      const sharedSecret256ArrayBuffer = await window.crypto.subtle.digest({ name: 'SHA-256', length: 256 }, sharedSecretArrayBuffer);
+        // get the encryption iv
+        const encryptionIVString = this.object.currentVersion.key.iv;
+        const encryptionIV = new Uint8Array(hexStringToArrayBuffer(encryptionIVString));
 
-      // turn the shared secret into a wrapping key
-      const wrappingKey = await window.crypto.subtle.importKey('raw', sharedSecret256ArrayBuffer, { name: 'AES-CBC', length: 256 }, false, ['unwrapKey']);
+        // decrypt the data
+        const decryptedArrayBuffer = await window.crypto.subtle.decrypt({ name: 'AES-CBC', iv: encryptionIV }, key, data);
+        this.decryptedBlobUrl = URL.createObjectURL(new Blob([decryptedArrayBuffer]));
+      } catch (err) {
+        notifyError(err);
+      }
+    },
+    async shareKey() {
+      const accountName = await this.$store.dispatch('openStringPrompt', {
+        text: 'Enter account name',
+        value: '',
+      });
+      if (!accountName) {
+        return;
+      }
+      try {
+        const { publicKey } = this.$store.getters;
 
-      // get the wrapping iv
-      const wrappingIVString = this.object.currentVersion.encKey.iv;
-      const wrappingIV = new Uint8Array(hexStringToArrayBuffer(wrappingIVString));
+        // unwrap the key
+        const key = await this.unwrapKey(publicKey, publicKey);
 
-      // get the wrapped key
-      const wrappedKeyString = this.object.currentVersion.encKey.value;
-      const wrappedKeyArrayBuffer = hexStringToArrayBuffer(wrappedKeyString);
+        // get the account's public key
+        const otherPublicKey = await this.$store.dispatch('getActivePublicKey', { accountName });
 
-      // unwrap the key
-      const key = await window.crypto.subtle.unwrapKey('raw', wrappedKeyArrayBuffer, wrappingKey, { name: 'AES-CBC', length: 256, iv: wrappingIV }, { name: 'AES-CBC', length: 256 }, false, ['decrypt']);
+        // wrap key using shared secret between our private key and their public key
+        const {
+          wrappingIVString,
+          wrappedKeyString,
+          nonce,
+        } = await this.wrapKey(publicKey, otherPublicKey, key);
 
-      // get the encryption iv
-      const encryptionIVString = this.object.currentVersion.key.iv;
-      const encryptionIV = new Uint8Array(hexStringToArrayBuffer(encryptionIVString));
+        const { currentVersion } = this.object;
 
-      // decrypt the data
-      const decryptedArrayBuffer = await window.crypto.subtle.decrypt({ name: 'AES-CBC', iv: encryptionIV }, key, data);
-      this.decryptedBlobUrl = URL.createObjectURL(new Blob([decryptedArrayBuffer]));
+        await this.$store.dispatch('shareKey', {
+          id: Date.now(),
+          keyID: currentVersion.key.id,
+          publicKey: otherPublicKey,
+          encryptedKeyIV: wrappingIVString,
+          nonce,
+          encryptedKey: wrappedKeyString,
+        });
+      } catch (err) {
+        notifyError(err);
+      }
     },
     async deleteFolder() {
       try {

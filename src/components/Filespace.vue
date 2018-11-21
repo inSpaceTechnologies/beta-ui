@@ -7,7 +7,7 @@ file, You can obtain one at https://mozilla.org/MPL/2.0/.
 <template>
   <div id="root-wrapper">
     <div
-      v-if="root"
+      v-if="root && publicKey"
       id="filespace-background"
       class="semitransparent"
     >
@@ -18,6 +18,7 @@ file, You can obtain one at https://mozilla.org/MPL/2.0/.
           :object="root"
           :is-folder="true"
           :account-name="accountName"
+          :public-key="publicKey"
         />
       </ul>
     </div>
@@ -61,6 +62,7 @@ export default {
   data() {
     return {
       otherRoot: null,
+      otherPublicKey: null,
     };
   },
   computed: {
@@ -71,14 +73,21 @@ export default {
       // NB this.$store.state.filespace.root might not be available immediately
       return this.$store.state.filespace.root;
     },
+    publicKey() {
+      if (this.accountName) {
+        return this.otherPublicKey;
+      }
+      return this.$store.getters.publicKey;
+    },
   },
-  created() {
+  async created() {
     if (this.accountName) {
-      this.$store.dispatch('getOtherFilespace', { accountName: this.accountName }).then((otherRoot) => {
-        this.otherRoot = otherRoot;
-      }, (err) => {
+      try {
+        this.otherRoot = await this.$store.dispatch('getOtherFilespace', { accountName: this.accountName });
+        this.otherPublicKey = await this.$store.dispatch('getActivePublicKey', { accountName: this.accountName });
+      } catch (err) {
         logger.error(err.message);
-      });
+      }
     }
   },
 };
