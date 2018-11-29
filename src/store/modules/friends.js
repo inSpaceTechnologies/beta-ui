@@ -39,6 +39,7 @@ function getFriendData(rpc, accountName) {
       const sentRequests = [];
       const receivedRequests = [];
       const friends = [];
+      const allFriends = {};
 
       rawRequests.forEach((request) => {
         if (request.from === accountName) {
@@ -54,8 +55,19 @@ function getFriendData(rpc, accountName) {
         } else if (friendship.account2 === accountName) {
           friends.push(friendship.account1);
         }
+
+        if (!allFriends[friendship.account1]) {
+          allFriends[friendship.account1] = [];
+        }
+        if (!allFriends[friendship.account2]) {
+          allFriends[friendship.account2] = [];
+        }
+        allFriends[friendship.account1].push(friendship.account2);
+        allFriends[friendship.account2].push(friendship.account1);
       });
-      resolve({ sentRequests, receivedRequests, friends });
+      resolve({
+        sentRequests, receivedRequests, friends, allFriends,
+      });
     });
   });
 }
@@ -64,6 +76,8 @@ const storeState = {
   sentRequests: [],
   receivedRequests: [],
   friends: [],
+  // friends of all users
+  allFriends: {},
 };
 
 const storeMutations = {
@@ -76,20 +90,23 @@ const storeMutations = {
   setFriends(state, friends) {
     state.friends = friends;
   },
+  setAllFriends(state, allFriends) {
+    state.allFriends = allFriends;
+  },
 };
 
 
 const storeActions = {
-  getFriends({ commit, rootState, rootGetters }) {
-    return new Promise((resolve) => {
-      const { accountName } = rootGetters;
-      getFriendData(rootState.scatter.rpc, accountName).then(({ sentRequests, receivedRequests, friends }) => {
-        commit('setSentRequests', sentRequests);
-        commit('setReceivedRequests', receivedRequests);
-        commit('setFriends', friends);
-        resolve({ sentRequests, receivedRequests, friends });
-      });
-    });
+  async getFriends({ commit, rootState, rootGetters }) {
+    const { accountName } = rootGetters;
+    const {
+      sentRequests, receivedRequests, friends, allFriends,
+    } = await getFriendData(rootState.scatter.rpc, accountName);
+    commit('setSentRequests', sentRequests);
+    commit('setReceivedRequests', receivedRequests);
+    commit('setFriends', friends);
+    commit('setAllFriends', allFriends);
+    return { sentRequests, receivedRequests, friends };
   },
   async addFriendRequest({ rootState, rootGetters }, requestAccount) {
     const { accountName } = rootGetters;

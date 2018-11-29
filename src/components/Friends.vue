@@ -6,7 +6,36 @@ file, You can obtain one at https://mozilla.org/MPL/2.0/.
 -->
 <template>
   <div class="central">
-    <div class="card">
+    <div
+      v-if="!isMe"
+      class="card"
+    >
+      <div class="card-header">
+        <span class="card-title">
+          Friends
+        </span>
+      </div>
+      <div class="card-content">
+        <ul>
+          <li
+            v-for="(friend, index) in friends"
+            :key="index + '-friend'"
+          >
+            <router-link
+              :to="{name: 'about', params: { accountName: friend }}"
+              exact
+              class="router-link"
+            >
+              {{ friend }}
+            </router-link>
+          </li>
+        </ul>
+      </div>
+    </div>
+    <div
+      v-if="isMe"
+      class="card"
+    >
       <div class="card-header">
         <span class="card-title">
           Friends
@@ -51,7 +80,7 @@ file, You can obtain one at https://mozilla.org/MPL/2.0/.
             :key="index + '-friend'"
           >
             <router-link
-              :to="{name: 'filespace', params: { accountname: friend }}"
+              :to="{name: 'about', params: { accountName: friend }}"
               exact
               class="router-link"
             >
@@ -84,14 +113,31 @@ file, You can obtain one at https://mozilla.org/MPL/2.0/.
 </template>
 <script>
 import * as JsSearch from 'js-search';
-import logger from '../../logger';
+import logger from '../logger';
 
 export default {
+  props: {
+    accountName: {
+      type: String,
+      required: true,
+    },
+  },
   data() {
     return {
       search: null,
       searchResults: [],
     };
+  },
+  computed: {
+    isMe() {
+      if (this.accountName === this.$store.getters.accountName) {
+        return true;
+      }
+      return false;
+    },
+    friends() {
+      return this.$store.state.friends.allFriends[this.accountName];
+    },
   },
   async created() {
     const accountList = await this.$store.dispatch('getAccountList');

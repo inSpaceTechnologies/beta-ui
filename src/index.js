@@ -19,7 +19,7 @@ import 'noty/lib/themes/relax.css';
 // font awesome
 import { library } from '@fortawesome/fontawesome-svg-core';
 import {
-  faHome, faSignInAlt, faSignOutAlt, faUserPlus, faUserFriends, faCaretDown, faCoins,
+  faHome, faSignInAlt, faSignOutAlt, faUser, faUserPlus, faUserFriends, faCaretDown, faCoins,
 } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
 
@@ -27,9 +27,9 @@ import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
 import appComponent from './components/App.vue';
 
 import homeComponent from './components/pages/Home.vue';
-import friendsComponent from './components/pages/Friends.vue';
 import notFoundComponent from './components/pages/404.vue';
 import adminComponent from './components/pages/Admin.vue';
+import userComponent from './components/pages/User.vue';
 import scatterSetupComponent from './components/pages/ScatterSetup.vue';
 import filespacePageComponent from './components/pages/Filespace.vue';
 import purchasePageComponent from './components/pages/Purchase.vue';
@@ -43,6 +43,9 @@ import modalDialogComponent from './components/ModalDialog.vue';
 import filespaceComponent from './components/Filespace.vue';
 import dropdownButtonComponent from './components/DropdownButton.vue';
 import dropdownMenuComponent from './components/DropdownMenu.vue';
+import friendsComponent from './components/Friends.vue';
+import aboutComponent from './components/About.vue';
+
 
 import logger from './logger';
 import auth from './auth';
@@ -73,11 +76,14 @@ Vue.component('modal-dialog', modalDialogComponent);
 Vue.component('filespace', filespaceComponent);
 Vue.component('dropdown-button', dropdownButtonComponent);
 Vue.component('dropdown-menu', dropdownMenuComponent);
+Vue.component('about', aboutComponent);
+Vue.component('friends', friendsComponent);
 
 // font awesome
 library.add(faHome);
 library.add(faSignInAlt);
 library.add(faSignOutAlt);
+library.add(faUser);
 library.add(faUserPlus);
 library.add(faUserFriends);
 library.add(faCaretDown);
@@ -107,9 +113,27 @@ const router = new VueRouter({
       component: adminComponent,
     },
     {
-      path: '/friends',
+      path: '/about/:accountName',
+      name: 'about',
+      component: userComponent,
+      props(route) {
+        return {
+          tab: 'about',
+          accountName: route.params.accountName,
+        };
+      },
+      meta: { scatter: true },
+    },
+    {
+      path: '/friends/:accountName',
       name: 'friends',
-      component: friendsComponent,
+      component: userComponent,
+      props(route) {
+        return {
+          tab: 'friends',
+          accountName: route.params.accountName,
+        };
+      },
       meta: { scatter: true },
     },
     {

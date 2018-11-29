@@ -17,6 +17,14 @@ file, You can obtain one at https://mozilla.org/MPL/2.0/.
       >
     </router-link>
     <router-link
+      :to="{ name: 'about', params: { accountName: this.$store.getters.accountName }}"
+      exact
+      class="navbar-button"
+    >
+      <font-awesome-icon icon="user" />
+      {{ this.$store.getters.accountName }}
+    </router-link>
+    <router-link
       :to="{name: 'home'}"
       exact
       class="navbar-button"
@@ -32,14 +40,6 @@ file, You can obtain one at https://mozilla.org/MPL/2.0/.
     >
       <font-awesome-icon icon="coins" />
       {{ this.$store.state.iscoin.balance + ' ' + currencySymbol }}
-    </router-link>
-    <router-link
-      :to="{name: 'friends'}"
-      exact
-      class="navbar-button"
-    >
-      <font-awesome-icon icon="user-friends" />
-      Friends
     </router-link>
     <div>
       <dropdown-button
