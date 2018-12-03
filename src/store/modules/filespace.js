@@ -52,7 +52,7 @@ async function getTables(rpc, accountName) {
   return data;
 }
 
-async function getFilespaceData(eos, accountName, ownPublicKey) {
+async function getFilespaceData(rpc, accountName, ownPublicKey) {
   const {
     rawVersions,
     rawFiles,
@@ -60,7 +60,7 @@ async function getFilespaceData(eos, accountName, ownPublicKey) {
     rawLikes,
     rawKeys,
     rawEncKeys,
-  } = await getTables(eos, accountName);
+  } = await getTables(rpc, accountName);
 
   // index the data
   const indexedVersions = {};
@@ -140,6 +140,24 @@ async function getFilespaceData(eos, accountName, ownPublicKey) {
   return (rootFolder);
 }
 
+async function getKeyData(keyID, rpc, accountName, ownPublicKey) {
+  const rawKeys = await getTable(rpc, accountName, 'keys');
+  const rawEncKeys = await getTable(rpc, accountName, 'enckeys');
+
+  const indexedKeys = {};
+  rawKeys.forEach((key) => {
+    indexedKeys[key.id] = key;
+  });
+
+  let encKey;
+  rawEncKeys.forEach((rawEncKey) => {
+    if (rawEncKey.key === keyID && rawEncKey.public_key === ownPublicKey) {
+      encKey = rawEncKey;
+    }
+  });
+  return { encKey, key: indexedKeys[keyID] };
+}
+
 const storeState = {
   root: null,
 };
@@ -202,6 +220,15 @@ const storeActions = {
   }) {
     const { accountName } = rootGetters;
     let keyID = 0;
+
+    const version = {
+      id,
+      date,
+      ipfs_hash: ipfsHash,
+      sha256,
+      likes: [],
+    };
+
     if (keyIV) {
       keyID = id;
       await rootState.scatter.api.transact({
@@ -222,6 +249,11 @@ const storeActions = {
         blocksBehind: parseInt(process.env.BLOCKS_BEHIND, 10),
         expireSeconds: parseInt(process.env.EXPIRE_SECONDS, 10),
       });
+
+      version.key = {
+        id: keyID,
+        iv: keyIV,
+      };
     }
     if (encryptedKey) {
       await rootState.scatter.api.transact({
@@ -246,6 +278,15 @@ const storeActions = {
         blocksBehind: parseInt(process.env.BLOCKS_BEHIND, 10),
         expireSeconds: parseInt(process.env.EXPIRE_SECONDS, 10),
       });
+
+      version.encKey = {
+        id,
+        key: keyID,
+        public_key: publicKey,
+        iv: encryptedKeyIV,
+        nonce,
+        value: encryptedKey,
+      };
     }
     await rootState.scatter.api.transact({
       actions: [{
@@ -307,27 +348,6 @@ const storeActions = {
       blocksBehind: parseInt(process.env.BLOCKS_BEHIND, 10),
       expireSeconds: parseInt(process.env.EXPIRE_SECONDS, 10),
     });
-    const version = {
-      id,
-      date,
-      ipfs_hash: ipfsHash,
-      sha256,
-      likes: [],
-    };
-    if (keyID) {
-      version.key = {
-        id: keyID,
-        iv: keyIV,
-      };
-      version.encKey = {
-        id,
-        key: keyID,
-        public_key: publicKey,
-        iv: encryptedKeyIV,
-        nonce,
-        value: encryptedKey,
-      };
-    }
     const newFile = {
       name,
       id,
@@ -487,6 +507,116 @@ const storeActions = {
       blocksBehind: parseInt(process.env.BLOCKS_BEHIND, 10),
       expireSeconds: parseInt(process.env.EXPIRE_SECONDS, 10),
     });
+  },
+  async setProfile({ rootState, rootGetters }, {
+    ipfsHash,
+    keyIV,
+    encryptedKey,
+    publicKey,
+    encryptedKeyIV,
+    nonce,
+  }) {
+    let key = {};
+    let encKey = {};
+
+    const { accountName } = rootGetters;
+    const id = Date.now();
+    let keyID = 0;
+
+    if (keyIV) {
+      keyID = id;
+      await rootState.scatter.api.transact({
+        actions: [{
+          account: CONTRACT_ACCOUNT,
+          name: 'addkey',
+          authorization: [{
+            actor: accountName,
+            permission: 'active',
+          }],
+          data: {
+            user: accountName,
+            id: keyID,
+            iv: keyIV,
+          },
+        }],
+      }, {
+        blocksBehind: parseInt(process.env.BLOCKS_BEHIND, 10),
+        expireSeconds: parseInt(process.env.EXPIRE_SECONDS, 10),
+      });
+
+      key = {
+        id: keyID,
+        iv: keyIV,
+      };
+    }
+    if (encryptedKey) {
+      await rootState.scatter.api.transact({
+        actions: [{
+          account: CONTRACT_ACCOUNT,
+          name: 'addenckey',
+          authorization: [{
+            actor: accountName,
+            permission: 'active',
+          }],
+          data: {
+            user: accountName,
+            id,
+            key: keyID,
+            public_key: publicKey,
+            iv: encryptedKeyIV,
+            nonce,
+            value: encryptedKey,
+          },
+        }],
+      }, {
+        blocksBehind: parseInt(process.env.BLOCKS_BEHIND, 10),
+        expireSeconds: parseInt(process.env.EXPIRE_SECONDS, 10),
+      });
+
+      encKey = {
+        id,
+        key: keyID,
+        public_key: publicKey,
+        iv: encryptedKeyIV,
+        nonce,
+        value: encryptedKey,
+      };
+    }
+
+    await rootState.scatter.api.transact({
+      actions: [{
+        account: CONTRACT_ACCOUNT,
+        name: 'setprofile',
+        authorization: [{
+          actor: accountName,
+          permission: 'active',
+        }],
+        data: {
+          user: accountName,
+          ipfs_hash: ipfsHash,
+          key: keyID,
+        },
+      }],
+    }, {
+      blocksBehind: parseInt(process.env.BLOCKS_BEHIND, 10),
+      expireSeconds: parseInt(process.env.EXPIRE_SECONDS, 10),
+    });
+
+    return { key, encKey };
+  },
+  async getProfile({ rootState }, { accountName, ownPublicKey }) {
+    const data = await getTable(rootState.scatter.rpc, accountName, 'profiles');
+    if (data.length > 0) {
+      const profile = data[0];
+      if (profile.key) {
+        // get the key
+        const { encKey, key } = await getKeyData(profile.key, rootState.scatter.rpc, accountName, ownPublicKey);
+        profile.encKey = encKey;
+        profile.key = key;
+      }
+      return profile;
+    }
+    return null;
   },
 };
 

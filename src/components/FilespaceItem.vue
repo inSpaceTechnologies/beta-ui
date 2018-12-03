@@ -160,44 +160,7 @@ file, You can obtain one at https://mozilla.org/MPL/2.0/.
 import axios from 'axios';
 import logger from '../logger';
 import inspaceAPI from '../inspaceapi';
-
-function notifyError(err) {
-  if (!err.message) {
-    return;
-  }
-  logger.notify({
-    title: 'Error',
-    text: err.message,
-    type: 'error',
-    permanent: false,
-    sticky: true,
-    buttons: [],
-  });
-}
-
-// https://stackoverflow.com/questions/1349404/generate-random-string-characters-in-javascript
-function generateNonce(length) {
-  const possible = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-
-  let text = '';
-  for (let i = 0; i < length; i += 1) {
-    text += possible.charAt(Math.floor(Math.random() * possible.length));
-  }
-  return text;
-}
-
-// https://stackoverflow.com/questions/43131242/how-to-convert-a-hexademical-string-of-data-to-an-arraybuffer-in-javascript
-function hexStringToArrayBuffer(str) {
-  const typedArray = new Uint8Array(str.match(/[\da-f]{2}/gi).map(h => parseInt(h, 16)));
-  return typedArray.buffer;
-}
-// https://stackoverflow.com/questions/40031688/javascript-arraybuffer-to-hex
-function arrayBufferToHexString(buffer) {
-  return Array
-    .from(new Uint8Array(buffer))
-    .map(b => b.toString(16).padStart(2, '0'))
-    .join('');
-}
+import encryption from '../encryption';
 
 export default {
   props: {
@@ -237,70 +200,6 @@ export default {
     };
   },
   methods: {
-    // initialisation vector for AES-CBC
-    generateIV() {
-      return window.crypto.getRandomValues(new Uint8Array(16));
-    },
-    async wrapKey(myPublicKey, recipientPublicKey, key) {
-      // generate nonce string
-      const nonce = generateNonce(16);
-
-      // get shared secret (between own public and private key)
-      // {fromPublicKey, toPublicKey, fromBlockchain, toBlockchain, nonce}
-      const sharedSecretString = await this.$store.state.scatter.scatter.getEncryptionKey(myPublicKey, recipientPublicKey, 'eos', 'eos', nonce);
-      const sharedSecretArrayBuffer = hexStringToArrayBuffer(sharedSecretString);
-      // shared secret is 512 bit hex (Scatter takes the SHA512 hash). we need 256 bits for AES-CBC.
-      const sharedSecret256ArrayBuffer = await window.crypto.subtle.digest({ name: 'SHA-256', length: 256 }, sharedSecretArrayBuffer);
-
-      // turn the shared secret into a wrapping key
-      const wrappingKey = await window.crypto.subtle.importKey('raw', sharedSecret256ArrayBuffer, { name: 'AES-CBC', length: 256 }, false, ['wrapKey']);
-
-      // generate iv for wrapping
-      const wrappingIV = this.generateIV();
-
-      // convert iv to hex string for storage
-      const wrappingIVString = arrayBufferToHexString(wrappingIV.buffer);
-
-      // wrap the key
-      const wrappedKeyArrayBuffer = await crypto.subtle.wrapKey('raw', key, wrappingKey, { name: 'AES-CBC', length: 256, iv: wrappingIV });
-
-      // convert the wrapped key to a hex string for storage
-      const wrappedKeyString = arrayBufferToHexString(wrappedKeyArrayBuffer);
-
-      return {
-        wrappingIVString,
-        wrappedKeyArrayBuffer,
-        wrappedKeyString,
-        nonce,
-      };
-    },
-    async unwrapKey(ownerPublicKey, myPublicKey) {
-      // get the nonce
-      const { nonce } = this.object.currentVersion.encKey;
-
-      // get shared secret (between public and private key)
-      // {fromPublicKey, toPublicKey, fromBlockchain, toBlockchain, nonce}
-      const sharedSecretString = await this.$store.state.scatter.scatter.getEncryptionKey(myPublicKey, ownerPublicKey, 'eos', 'eos', nonce);
-      const sharedSecretArrayBuffer = hexStringToArrayBuffer(sharedSecretString);
-      // shared secret is 512 bit hex (Scatter takes the SHA512 hash). we need 256 bits for AES-CBC.
-      const sharedSecret256ArrayBuffer = await window.crypto.subtle.digest({ name: 'SHA-256', length: 256 }, sharedSecretArrayBuffer);
-
-      // turn the shared secret into a wrapping key
-      const wrappingKey = await window.crypto.subtle.importKey('raw', sharedSecret256ArrayBuffer, { name: 'AES-CBC', length: 256 }, false, ['unwrapKey']);
-
-      // get the wrapping iv
-      const wrappingIVString = this.object.currentVersion.encKey.iv;
-      const wrappingIV = new Uint8Array(hexStringToArrayBuffer(wrappingIVString));
-
-      // get the wrapped key
-      const wrappedKeyString = this.object.currentVersion.encKey.value;
-      const wrappedKeyArrayBuffer = hexStringToArrayBuffer(wrappedKeyString);
-
-      // unwrap the key
-      const key = await window.crypto.subtle.unwrapKey('raw', wrappedKeyArrayBuffer, wrappingKey, { name: 'AES-CBC', length: 256, iv: wrappingIV }, { name: 'AES-CBC', length: 256 }, true, ['decrypt']);
-
-      return key;
-    },
     toggle() {
       this.open = !this.open;
     },
@@ -313,7 +212,7 @@ export default {
         try {
           await this.$store.dispatch('addFolder', { id: Date.now(), name: value, parent: this.object });
         } catch (err) {
-          notifyError(err);
+          logger.notifyError(err);
         }
       }
     },
@@ -351,7 +250,7 @@ export default {
           parent: this.object,
         });
       } catch (err) {
-        notifyError(err);
+        logger.notifyError(err);
       }
     },
     async completeEncryptedUpload(event) {
@@ -363,25 +262,12 @@ export default {
 
         // set up encryption
         reader.onload = async (evt) => {
-          // generate key
-          const key = await window.crypto.subtle.generateKey({ name: 'AES-CBC', length: 256 }, true, ['encrypt']);
-
           const { publicKey } = this.$store.getters;
+          const arrayBuffer = evt.target.result;
 
-          // wrap key
           const {
-            wrappingIVString,
-            wrappedKeyString,
-            nonce,
-          } = await this.wrapKey(publicKey, publicKey, key);
-
-          // generate iv for encryption
-          const encryptionIV = this.generateIV();
-
-          // convert iv to hex string for storage
-          const encryptionIVString = arrayBufferToHexString(encryptionIV.buffer);
-
-          const encrypted = await window.crypto.subtle.encrypt({ name: 'AES-CBC', iv: encryptionIV }, key, evt.target.result);
+            wrappingIVString, wrappedKeyString, nonce, encryptionIVString, encrypted,
+          } = await encryption.encrypt({ publicKey, arrayBuffer, $store: this.$store });
 
           const formData = new FormData();
           formData.append('file', new Blob([encrypted]), file.name);
@@ -413,27 +299,32 @@ export default {
         // start the reader
         reader.readAsArrayBuffer(file);
       } catch (err) {
-        notifyError(err);
+        logger.notifyError(err);
       }
     },
     async decryptFile() {
       try {
         const url = `${this.ipfsGateway}/ipfs/${this.object.currentVersion.ipfs_hash}`;
         const response = await axios.get(url, { responseType: 'arraybuffer' });
-        const { data } = response;
+        const arrayBuffer = response.data;
 
-        // unwrap the key
-        const key = await this.unwrapKey(this.publicKey, this.object.currentVersion.encKey.public_key);
+        const { nonce } = this.object.currentVersion.encKey;
+        const wrappingIVString = this.object.currentVersion.encKey.iv;
+        const wrappedKeyString = this.object.currentVersion.encKey.value;
 
-        // get the encryption iv
-        const encryptionIVString = this.object.currentVersion.key.iv;
-        const encryptionIV = new Uint8Array(hexStringToArrayBuffer(encryptionIVString));
-
-        // decrypt the data
-        const decryptedArrayBuffer = await window.crypto.subtle.decrypt({ name: 'AES-CBC', iv: encryptionIV }, key, data);
+        const decryptedArrayBuffer = await encryption.decrypt({
+          nonce,
+          wrappingIVString,
+          wrappedKeyString,
+          arrayBuffer,
+          ownerPublicKey: this.publicKey,
+          myPublicKey: this.object.currentVersion.encKey.public_key,
+          encryptionIVString: this.object.currentVersion.key.iv,
+          $store: this.$store,
+        });
         this.decryptedBlobUrl = URL.createObjectURL(new Blob([decryptedArrayBuffer]));
       } catch (err) {
-        notifyError(err);
+        logger.notifyError(err);
       }
     },
     async shareKey() {
@@ -446,32 +337,33 @@ export default {
       }
       try {
         const { publicKey } = this.$store.getters;
-
-        // unwrap the key
-        const key = await this.unwrapKey(publicKey, publicKey);
-
         // get the account's public key
-        const otherPublicKey = await this.$store.dispatch('getActivePublicKey', { accountName });
+        const recipientPublicKey = await this.$store.dispatch('getActivePublicKey', { accountName });
 
-        // wrap key using shared secret between our private key and their public key
         const {
           wrappingIVString,
           wrappedKeyString,
           nonce,
-        } = await this.wrapKey(publicKey, otherPublicKey, key);
-
-        const { currentVersion } = this.object;
+        } = await encryption.shareKey({
+          publicKey,
+          recipientPublicKey,
+          $store: this.$store,
+          nonce: this.object.currentVersion.encKey.nonce,
+          wrappingIVString: this.object.currentVersion.encKey.iv,
+          wrappedKeyString: this.object.currentVersion.encKey.value,
+          encryptionIVString: this.object.currentVersion.key.iv,
+        });
 
         await this.$store.dispatch('shareKey', {
           id: Date.now(),
-          keyID: currentVersion.key.id,
-          publicKey: otherPublicKey,
+          keyID: this.object.currentVersion.key.id,
+          publicKey: recipientPublicKey,
           encryptedKeyIV: wrappingIVString,
           nonce,
           encryptedKey: wrappedKeyString,
         });
       } catch (err) {
-        notifyError(err);
+        logger.notifyError(err);
       }
     },
     async deleteFolder() {
@@ -481,7 +373,7 @@ export default {
           parent: this.parent,
         });
       } catch (err) {
-        notifyError(err);
+        logger.notifyError(err);
       }
     },
     async deleteFile() {
@@ -500,7 +392,7 @@ export default {
           logger.log('Did not unpin');
         }
       } catch (err) {
-        notifyError(err);
+        logger.notifyError(err);
       }
     },
     async likeFile() {
@@ -510,7 +402,7 @@ export default {
           accountName: this.accountName,
         });
       } catch (err) {
-        notifyError(err);
+        logger.notifyError(err);
       }
     },
   },
