@@ -10,7 +10,7 @@ file, You can obtain one at https://mozilla.org/MPL/2.0/.
       <div id="profile-picture-column">
         <img
           id="profile-picture"
-          src=""
+          src="../../images/profile.png"
         >
       </div>
       <div id="main-column">
