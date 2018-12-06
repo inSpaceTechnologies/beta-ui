@@ -5,20 +5,15 @@ License, v. 2.0. If a copy of the MPL was not distributed with this
 file, You can obtain one at https://mozilla.org/MPL/2.0/.
 -->
 <template>
-  <div class="central">
-    <div class="card">
-      <div class="card-header">
-        <span class="card-title">
-          Filespace (3D)
-        </span>
-      </div>
-      <div class="card-content">
-        <p>Coming soon...</p>
-      </div>
-    </div>
+  <div id="filespace-3d-wrapper">
+    <filespace-3d :account-name="$route.params.accountName"/>
   </div>
 </template>
 <style scoped>
+filespace-3d-wrapper {
+  display: flex;
+  flex-grow: 1;
+}
 </style>
 <script>
 </script>

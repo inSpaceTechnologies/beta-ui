@@ -39,16 +39,17 @@ import purchasePageComponent from './components/pages/Purchase.vue';
 import iscoinPageComponent from './components/pages/Iscoin.vue';
 
 import navbarComponent from './components/Navbar.vue';
-import filespaceItemComponent from './components/FilespaceItem.vue';
 import stringPromptComponent from './components/StringPrompt.vue';
 import alertComponent from './components/Alert.vue';
 import modalDialogComponent from './components/ModalDialog.vue';
 import filespace2dComponent from './components/Filespace2d.vue';
+import filespaceItemComponent from './components/FilespaceItem.vue';
+import filespace3dComponent from './components/Filespace3d.vue';
+import inspaceGraphComponent from './components/InspaceGraph.vue';
 import dropdownButtonComponent from './components/DropdownButton.vue';
 import dropdownMenuComponent from './components/DropdownMenu.vue';
 import friendsComponent from './components/Friends.vue';
 import aboutComponent from './components/About.vue';
-
 
 import logger from './logger';
 import auth from './auth';
@@ -72,11 +73,13 @@ WebFont.load({
 
 // register components
 Vue.component('navbar', navbarComponent);
-Vue.component('filespace-item', filespaceItemComponent);
 Vue.component('string-prompt', stringPromptComponent);
 Vue.component('alert', alertComponent);
 Vue.component('modal-dialog', modalDialogComponent);
 Vue.component('filespace-2d', filespace2dComponent);
+Vue.component('filespace-item', filespaceItemComponent);
+Vue.component('filespace-3d', filespace3dComponent);
+Vue.component('inspace-graph', inspaceGraphComponent);
 Vue.component('dropdown-button', dropdownButtonComponent);
 Vue.component('dropdown-menu', dropdownMenuComponent);
 Vue.component('about', aboutComponent);

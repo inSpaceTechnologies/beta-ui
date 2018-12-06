@@ -1,5 +1,6 @@
 /* eslint-disable import/no-extraneous-dependencies */
 
+const webpack = require('webpack');
 const path = require('path');
 const { VueLoaderPlugin } = require('vue-loader');
 
@@ -25,7 +26,7 @@ module.exports = {
         loader: ['style-loader', 'css-loader'],
       },
       {
-        test: /\.(png|svg|jpg|gif)$/,
+        test: /\.(png|svg|jpg|gif|fnt)$/,
         /* it's nice if the page doesn't get shown with missing branding, so use url-loader not file-loader */
         loader: 'url-loader',
       },
@@ -33,5 +34,8 @@ module.exports = {
   },
   plugins: [
     new VueLoaderPlugin(),
+    new webpack.ProvidePlugin({
+      THREE: 'three-full', // three-bmfont-text requires global THREE
+    }),
   ],
 };
