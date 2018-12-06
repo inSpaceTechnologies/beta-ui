@@ -9,11 +9,11 @@ file, You can obtain one at https://mozilla.org/MPL/2.0/.
     <div class="card">
       <div class="card-header">
         <span class="card-title">
-          Home
+          Filespace (3D)
         </span>
       </div>
       <div class="card-content">
-        <p>Welcome to inSpace!</p>
+        <p>Coming soon...</p>
       </div>
     </div>
   </div>

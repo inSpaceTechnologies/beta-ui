@@ -19,19 +19,22 @@ import 'noty/lib/themes/relax.css';
 // font awesome
 import { library } from '@fortawesome/fontawesome-svg-core';
 import {
-  faHome, faSignInAlt, faSignOutAlt, faUser, faUserPlus, faUserFriends, faCaretDown, faCoins,
+  faHome, faSignInAlt, faSignOutAlt, faUser, faUserPlus, faUserFriends, faCaretDown, faCoins, faFolder,
 } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
 
 // components
+
 import appComponent from './components/App.vue';
 
+// pages
 import homeComponent from './components/pages/Home.vue';
 import notFoundComponent from './components/pages/404.vue';
 import adminComponent from './components/pages/Admin.vue';
 import userComponent from './components/pages/User.vue';
 import scatterSetupComponent from './components/pages/ScatterSetup.vue';
-import filespacePageComponent from './components/pages/Filespace.vue';
+import filespace2dPageComponent from './components/pages/Filespace2d.vue';
+import filespace3dPageComponent from './components/pages/Filespace3d.vue';
 import purchasePageComponent from './components/pages/Purchase.vue';
 import iscoinPageComponent from './components/pages/Iscoin.vue';
 
@@ -40,7 +43,7 @@ import filespaceItemComponent from './components/FilespaceItem.vue';
 import stringPromptComponent from './components/StringPrompt.vue';
 import alertComponent from './components/Alert.vue';
 import modalDialogComponent from './components/ModalDialog.vue';
-import filespaceComponent from './components/Filespace.vue';
+import filespace2dComponent from './components/Filespace2d.vue';
 import dropdownButtonComponent from './components/DropdownButton.vue';
 import dropdownMenuComponent from './components/DropdownMenu.vue';
 import friendsComponent from './components/Friends.vue';
@@ -73,7 +76,7 @@ Vue.component('filespace-item', filespaceItemComponent);
 Vue.component('string-prompt', stringPromptComponent);
 Vue.component('alert', alertComponent);
 Vue.component('modal-dialog', modalDialogComponent);
-Vue.component('filespace', filespaceComponent);
+Vue.component('filespace-2d', filespace2dComponent);
 Vue.component('dropdown-button', dropdownButtonComponent);
 Vue.component('dropdown-menu', dropdownMenuComponent);
 Vue.component('about', aboutComponent);
@@ -88,6 +91,7 @@ library.add(faUserPlus);
 library.add(faUserFriends);
 library.add(faCaretDown);
 library.add(faCoins);
+library.add(faFolder);
 Vue.component('font-awesome-icon', FontAwesomeIcon);
 Vue.config.productionTip = false;
 
@@ -137,9 +141,15 @@ const router = new VueRouter({
       meta: { scatter: true },
     },
     {
-      path: '/filespace/:accountname',
-      name: 'filespace',
-      component: filespacePageComponent,
+      path: '/filespace2d/:accountName',
+      name: 'filespace-2d',
+      component: filespace2dPageComponent,
+      meta: { scatter: true },
+    },
+    {
+      path: '/filespace3d/:accountName',
+      name: 'filespace-3d',
+      component: filespace3dPageComponent,
       meta: { scatter: true },
     },
     {

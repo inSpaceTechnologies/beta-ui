@@ -33,6 +33,22 @@ file, You can obtain one at https://mozilla.org/MPL/2.0/.
       Home
     </router-link>
     <router-link
+      :to="{name: 'filespace-2d', params: { accountName: this.$store.getters.accountName }}"
+      exact
+      class="navbar-button"
+    >
+      <font-awesome-icon icon="folder" />
+      Filespace (2D)
+    </router-link>
+    <router-link
+      :to="{name: 'filespace-3d', params: { accountName: this.$store.getters.accountName }}"
+      exact
+      class="navbar-button"
+    >
+      <font-awesome-icon icon="folder" />
+      Filespace (3D)
+    </router-link>
+    <router-link
       v-if="this.$store.state.iscoin.balance !== null"
       :to="{name: 'iscoin'}"
       exact
