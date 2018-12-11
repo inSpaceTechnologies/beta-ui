@@ -76,6 +76,13 @@ file, You can obtain one at https://mozilla.org/MPL/2.0/.
       >
         {{ object.currentVersion.likes.length }} likes
       </span>
+      <span
+        v-if="!isFolder"
+        class="filespace-button primary"
+        @click="post"
+      >
+        [Post]
+      </span>
     </div>
     <ul
       v-show="open"
@@ -134,6 +141,14 @@ file, You can obtain one at https://mozilla.org/MPL/2.0/.
           type="file"
           @change="completeEncryptedUpload"
         >
+      </li>
+      <li v-if="isFolder">
+        <span
+          class="filespace-button primary"
+          @click="post"
+        >
+          [Post]
+        </span>
       </li>
       <li v-if="isFolder">
         <span
@@ -400,6 +415,25 @@ export default {
         await this.$store.dispatch('likeVersion', {
           version: this.object.currentVersion,
           accountName: this.accountName,
+        });
+      } catch (err) {
+        logger.notifyError(err);
+      }
+    },
+    async post() {
+      try {
+        const caption = await this.$store.dispatch('openStringPrompt', {
+          text: 'Enter caption',
+          value: '',
+        });
+        if (!caption) {
+          return;
+        }
+        await this.$store.dispatch('addPost', {
+          id: Date.now(),
+          isFolder: this.isFolder,
+          subject: this.object,
+          caption,
         });
       } catch (err) {
         logger.notifyError(err);

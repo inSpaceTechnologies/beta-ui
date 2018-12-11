@@ -5,10 +5,13 @@ License, v. 2.0. If a copy of the MPL was not distributed with this
 file, You can obtain one at https://mozilla.org/MPL/2.0/.
 -->
 <template>
-  <div id="graph-container"/>
+  <div
+    ref="container"
+    class="graph-container"
+  />
 </template>
 <style scoped>
-#graph-container {
+.graph-container {
   display: flex;
   flex-grow: 1;
 }
@@ -61,7 +64,7 @@ export default {
     },
   },
   mounted() {
-    const container = document.getElementById('graph-container');
+    const { container } = this.$refs;
 
     const controller = new Controller();
 
@@ -151,24 +154,26 @@ export default {
     };
 
     controller.init(container, dataFunctions, { fnt: fontFnt, png: fontPng }, () => {
-      function addFolder(parentIgFolder, folder) {
+      function addObject(parentIgFolder, folder) {
         const igFolder = createIGFolder(folder);
         controller.addFilespaceItem(parentIgFolder, igFolder);
 
-        folder.childFolders.forEach((childFolder) => {
-          addFolder(igFolder, childFolder);
-        });
+        if (folder.childFolders) {
+          folder.childFolders.forEach((childFolder) => {
+            addObject(igFolder, childFolder);
+          });
+        }
 
-        folder.childFiles.forEach((childFile) => {
-          const igFile = createIGFile(childFile);
-          controller.addFilespaceItem(igFolder, igFile);
-        });
+        if (folder.childFiles) {
+          folder.childFiles.forEach((childFile) => {
+            const igFile = createIGFile(childFile);
+            controller.addFilespaceItem(igFolder, igFile);
+          });
+        }
       }
 
-      addFolder(null, this.root);
+      addObject(null, this.root);
 
-
-      // childFolders
       controller.animate();
     });
   },

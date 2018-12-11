@@ -417,7 +417,7 @@ const storeActions = {
     accountName,
   }) {
     const myAccountName = rootGetters.accountName;
-    await rootState.scatter.api.deletefile({
+    await rootState.scatter.api.transact({
       actions: [{
         account: CONTRACT_ACCOUNT,
         name: 'addlike',
@@ -437,6 +437,34 @@ const storeActions = {
       expireSeconds: parseInt(process.env.EXPIRE_SECONDS, 10),
     });
     version.likes.push(myAccountName);
+  },
+  async addPost({ rootState, rootGetters }, {
+    id,
+    isFolder,
+    subject,
+    caption,
+  }) {
+    const myAccountName = rootGetters.accountName;
+    await rootState.scatter.api.transact({
+      actions: [{
+        account: CONTRACT_ACCOUNT,
+        name: 'addpost',
+        authorization: [{
+          actor: myAccountName,
+          permission: 'active',
+        }],
+        data: {
+          account: myAccountName,
+          id,
+          is_folder: isFolder,
+          subject: subject.id,
+          caption,
+        },
+      }],
+    }, {
+      blocksBehind: parseInt(process.env.BLOCKS_BEHIND, 10),
+      expireSeconds: parseInt(process.env.EXPIRE_SECONDS, 10),
+    });
   },
   async getFilespace({
     dispatch,
@@ -619,6 +647,10 @@ const storeActions = {
       return profile;
     }
     return null;
+  },
+  async getPosts({ rootState }) {
+    const data = await getTable(rootState.scatter.rpc, CONTRACT_ACCOUNT, 'posts');
+    return data;
   },
 };
 
