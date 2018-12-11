@@ -17,6 +17,7 @@ file, You can obtain one at https://mozilla.org/MPL/2.0/.
       >
     </router-link>
     <router-link
+      v-if="this.$store.state.scatter.identitySet"
       :to="{ name: 'about', params: { accountName: this.$store.getters.accountName }}"
       exact
       class="navbar-button"
@@ -33,6 +34,7 @@ file, You can obtain one at https://mozilla.org/MPL/2.0/.
       Home
     </router-link>
     <router-link
+      v-if="this.$store.state.scatter.identitySet"
       :to="{name: 'filespace-2d', params: { accountName: this.$store.getters.accountName }}"
       exact
       class="navbar-button"
@@ -41,6 +43,7 @@ file, You can obtain one at https://mozilla.org/MPL/2.0/.
       Filespace (2D)
     </router-link>
     <router-link
+      v-if="this.$store.state.scatter.identitySet"
       :to="{name: 'filespace-3d', params: { accountName: this.$store.getters.accountName }}"
       exact
       class="navbar-button"
@@ -57,7 +60,7 @@ file, You can obtain one at https://mozilla.org/MPL/2.0/.
       <font-awesome-icon icon="coins" />
       {{ this.$store.state.iscoin.balance + ' ' + currencySymbol }}
     </router-link>
-    <div>
+    <div v-if="this.$store.state.scatter.identitySet">
       <dropdown-button
         identifier="friend-requests"
         class="navbar-button"
@@ -69,10 +72,7 @@ file, You can obtain one at https://mozilla.org/MPL/2.0/.
         identifier="friend-requests"
       >
         <ul>
-          <li v-if="!this.$store.state.scatter.identitySet">
-            Please <router-link :to="{name: 'scattersetup'}">set up Scatter</router-link>.
-          </li>
-          <li v-else-if="$store.state.friends.receivedRequests.length == 0">
+          <li v-if="$store.state.friends.receivedRequests.length == 0">
             No friend requests.
           </li>
           <li
